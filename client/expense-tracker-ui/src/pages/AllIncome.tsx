@@ -10,10 +10,20 @@ import {
 } from "lucide-react";
 import Modal from "../components/Modal";
 import IncomeForm, { type IncomeFormData } from "../components/IncomeForm";
+import FilterBar from "../components/FilterBar";
+
+const SOURCES = ["Salary", "Freelance", "Investments", "Gift", "Other"];
 
 const AllIncome = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [selectedSource, setSelectedSource] = useState("All");
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
 
   // Mock data
   const [incomeEntries, setIncomeEntries] = useState([
@@ -46,9 +56,54 @@ const AllIncome = () => {
     },
   ]);
 
+  const filteredIncome = useMemo(() => {
+    let result = incomeEntries.filter((entry) => {
+      const matchesSearch = entry.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesSource =
+        selectedSource === "All" || entry.source === selectedSource;
+      const matchesStartDate =
+        !startDate || new Date(entry.date) >= new Date(startDate);
+      const matchesEndDate =
+        !endDate || new Date(entry.date) <= new Date(endDate);
+      const matchesMinAmount =
+        !minAmount || entry.amount >= parseFloat(minAmount);
+      const matchesMaxAmount =
+        !maxAmount || entry.amount <= parseFloat(maxAmount);
+      return (
+        matchesSearch &&
+        matchesSource &&
+        matchesStartDate &&
+        matchesEndDate &&
+        matchesMinAmount &&
+        matchesMaxAmount
+      );
+    });
+
+    return result.sort((a, b) => {
+      if (sortBy === "newest")
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (sortBy === "oldest")
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      if (sortBy === "amount-high") return b.amount - a.amount;
+      if (sortBy === "amount-low") return a.amount - b.amount;
+      return 0;
+    });
+  }, [
+    incomeEntries,
+    searchTerm,
+    selectedSource,
+    startDate,
+    endDate,
+    minAmount,
+    maxAmount,
+    sortBy,
+  ]);
+
   const totalIncome = useMemo(() => {
-    return incomeEntries.reduce((sum, entry) => sum + entry.amount, 0);
-  }, [incomeEntries]);
+    return filteredIncome.reduce((sum, entry) => sum + entry.amount, 0);
+  }, [filteredIncome]);
 
   const handleAddOrEdit = (data: IncomeFormData) => {
     if (editingIncome) {
@@ -116,26 +171,24 @@ const AllIncome = () => {
       </div>
 
       {/* Filters/Search Bar */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search income..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all sm:text-sm"
-          />
-        </div>
-        <div className="flex gap-2">
-          <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </button>
-          <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
-            <Calendar className="h-4 w-4 mr-2" />
-            March 2024
-          </button>
-        </div>
-      </div>
+      <FilterBar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        startDate={startDate}
+        onStartDateChange={setStartDate}
+        endDate={endDate}
+        onEndDateChange={setEndDate}
+        selectedCategory={selectedSource}
+        onCategoryChange={setSelectedSource}
+        categories={SOURCES}
+        minAmount={minAmount}
+        onMinAmountChange={setMinAmount}
+        maxAmount={maxAmount}
+        onMaxAmountChange={setMaxAmount}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        placeholder="Search income..."
+      />
 
       {/* Income Table */}
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
@@ -164,7 +217,7 @@ const AllIncome = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
-              {incomeEntries.map((income) => (
+              {filteredIncome.map((income) => (
                 <tr
                   key={income.id}
                   className="hover:bg-gray-50/50 transition-colors"
@@ -211,7 +264,7 @@ const AllIncome = () => {
             </tbody>
           </table>
         </div>
-        {incomeEntries.length === 0 && (
+        {filteredIncome.length === 0 && (
           <div className="p-12 text-center">
             <Wallet className="h-12 w-12 text-gray-200 mx-auto mb-4" />
             <p className="text-gray-500 font-medium">

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Receipt,
   Search,
@@ -10,10 +10,28 @@ import {
 } from "lucide-react";
 import Modal from "../components/Modal";
 import ExpenseForm, { type ExpenseFormData } from "../components/ExpenseForm";
+import FilterBar from "../components/FilterBar";
+
+const CATEGORIES = [
+  "Food & Drinks",
+  "Housing",
+  "Transportation",
+  "Shopping",
+  "Entertainment",
+  "Health",
+  "Other",
+];
 
 const AllExpenses = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
 
   // Mock data
   const [expenses, setExpenses] = useState([
@@ -43,6 +61,51 @@ const AllExpenses = () => {
       date: "2024-03-15",
       paymentMethod: "Cash",
     },
+  ]);
+
+  const filteredExpenses = useMemo(() => {
+    let result = expenses.filter((expense) => {
+      const matchesSearch = expense.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "All" || expense.category === selectedCategory;
+      const matchesStartDate =
+        !startDate || new Date(expense.date) >= new Date(startDate);
+      const matchesEndDate =
+        !endDate || new Date(expense.date) <= new Date(endDate);
+      const matchesMinAmount =
+        !minAmount || expense.amount >= parseFloat(minAmount);
+      const matchesMaxAmount =
+        !maxAmount || expense.amount <= parseFloat(maxAmount);
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesStartDate &&
+        matchesEndDate &&
+        matchesMinAmount &&
+        matchesMaxAmount
+      );
+    });
+
+    return result.sort((a, b) => {
+      if (sortBy === "newest")
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (sortBy === "oldest")
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      if (sortBy === "amount-high") return b.amount - a.amount;
+      if (sortBy === "amount-low") return a.amount - b.amount;
+      return 0;
+    });
+  }, [
+    expenses,
+    searchTerm,
+    selectedCategory,
+    startDate,
+    endDate,
+    minAmount,
+    maxAmount,
+    sortBy,
   ]);
 
   const handleAddOrEdit = (data: ExpenseFormData) => {
@@ -94,26 +157,24 @@ const AllExpenses = () => {
       </div>
 
       {/* Filters/Search Bar */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search expenses..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all sm:text-sm"
-          />
-        </div>
-        <div className="flex gap-2">
-          <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </button>
-          <button className="inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
-            <Calendar className="h-4 w-4 mr-2" />
-            March 2024
-          </button>
-        </div>
-      </div>
+      <FilterBar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        startDate={startDate}
+        onStartDateChange={setStartDate}
+        endDate={endDate}
+        onEndDateChange={setEndDate}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        categories={CATEGORIES}
+        minAmount={minAmount}
+        onMinAmountChange={setMinAmount}
+        maxAmount={maxAmount}
+        onMaxAmountChange={setMaxAmount}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        placeholder="Search expenses..."
+      />
 
       {/* Expenses Table */}
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
@@ -145,7 +206,7 @@ const AllExpenses = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
-              {expenses.map((expense) => (
+              {filteredExpenses.map((expense) => (
                 <tr
                   key={expense.id}
                   className="hover:bg-gray-50/50 transition-colors"
@@ -198,7 +259,7 @@ const AllExpenses = () => {
             </tbody>
           </table>
         </div>
-        {expenses.length === 0 && (
+        {filteredExpenses.length === 0 && (
           <div className="p-12 text-center">
             <Receipt className="h-12 w-12 text-gray-200 mx-auto mb-4" />
             <p className="text-gray-500 font-medium">

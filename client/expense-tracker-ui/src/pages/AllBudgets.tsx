@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   PieChart,
   Plus,
@@ -10,10 +10,28 @@ import {
 } from "lucide-react";
 import Modal from "../components/Modal";
 import BudgetForm, { type BudgetFormData } from "../components/BudgetForm";
+import FilterBar from "../components/FilterBar";
+
+const CATEGORIES = [
+  "Food",
+  "Travel",
+  "Shopping",
+  "Housing",
+  "Entertainment",
+  "Health",
+  "Other",
+];
 
 const AllBudgets = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
 
   // Mock data with userId
   const [budgets, setBudgets] = useState([
@@ -40,6 +58,29 @@ const AllBudgets = () => {
       userId: "user123",
     },
   ]);
+
+  const filteredBudgets = useMemo(() => {
+    let result = budgets.filter((budget) => {
+      const matchesSearch = budget.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "All" || budget.category === selectedCategory;
+      const matchesMinAmount =
+        !minAmount || budget.amount >= parseFloat(minAmount);
+      const matchesMaxAmount =
+        !maxAmount || budget.amount <= parseFloat(maxAmount);
+      return (
+        matchesSearch && matchesCategory && matchesMinAmount && matchesMaxAmount
+      );
+    });
+
+    return result.sort((a, b) => {
+      if (sortBy === "amount-high") return b.amount - a.amount;
+      if (sortBy === "amount-low") return a.amount - b.amount;
+      return 0;
+    });
+  }, [budgets, searchTerm, selectedCategory, minAmount, maxAmount, sortBy]);
 
   const handleAddOrEdit = (data: BudgetFormData) => {
     if (editingBudget) {
@@ -90,8 +131,27 @@ const AllBudgets = () => {
         </button>
       </div>
 
+      <FilterBar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        startDate={startDate}
+        onStartDateChange={setStartDate}
+        endDate={endDate}
+        onEndDateChange={setEndDate}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        categories={CATEGORIES}
+        minAmount={minAmount}
+        onMinAmountChange={setMinAmount}
+        maxAmount={maxAmount}
+        onMaxAmountChange={setMaxAmount}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        placeholder="Search budgets..."
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {budgets.map((budget) => {
+        {filteredBudgets.map((budget) => {
           const remaining = budget.amount - budget.spent;
           const percentSpent = Math.min(
             (budget.spent / budget.amount) * 100,
@@ -191,7 +251,7 @@ const AllBudgets = () => {
           );
         })}
 
-        {budgets.length === 0 && (
+        {filteredBudgets.length === 0 && (
           <div className="col-span-full bg-white border border-dashed border-gray-200 rounded-2xl p-12 text-center">
             <Target className="h-12 w-12 text-gray-200 mx-auto mb-4" />
             <p className="text-gray-500 font-medium">

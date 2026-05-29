@@ -6,19 +6,20 @@ import {
   Outlet,
 } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
+
+import AllExpenses from "./pages/AllExpenses";
+import AddExpense from "./pages/AddExpense";
+import AllIncome from "./pages/AllIncome";
+import AddIncome from "./pages/AddIncome";
+import AllBudgets from "./pages/AllBudgets";
 import Auth from "./components/Auth";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import Dashboard from "./components/Dashboard";
-import AllExpenses from "./components/AllExpenses";
-import AddExpense from "./components/AddExpense";
-import AllIncome from "./components/AllIncome";
-import AddIncome from "./components/AddIncome";
-import AllBudgets from "./components/AllBudgets";
 import Reports from "./components/Reports";
 import Notifications from "./components/Notifications";
 import Profile from "./components/Profile";
-import { Settings } from "lucide-react";
+import Settings from "./components/Settings";
 
 // Layout component to wrap protected routes with the Sidebar
 const MainLayout = () => {
