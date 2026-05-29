@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Wallet,
   Search,
@@ -8,69 +8,87 @@ import {
   Calendar,
   DollarSign,
 } from "lucide-react";
+import { toast } from "react-toastify";
 import Modal from "./Modal";
 import IncomeForm, { type IncomeFormData } from "./IncomeForm";
+import { incomeAPI } from "../services/api";
+
+interface Income {
+  _id: string;
+  title: string;
+  amount: number;
+  source: string;
+  date: string;
+  note?: string;
+  userId?: string;
+}
 
 const AllIncome = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingIncome, setEditingIncome] = useState<any>(null);
+  const [editingIncome, setEditingIncome] = useState<Income | null>(null);
+  const [incomeEntries, setIncomeEntries] = useState<Income[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Mock data
-  const [incomeEntries, setIncomeEntries] = useState([
-    {
-      id: 1,
-      title: "Monthly Salary",
-      amount: 3500.0,
-      source: "Salary",
-      date: "2024-03-25",
-      note: "March salary payment",
-      userId: "user123",
-    },
-    {
-      id: 2,
-      title: "Freelance Project",
-      amount: 750.0,
-      source: "Freelance",
-      date: "2024-03-18",
-      note: "Web development project for client A",
-      userId: "user123",
-    },
-    {
-      id: 3,
-      title: "Investment Dividend",
-      amount: 150.0,
-      source: "Investments",
-      date: "2024-03-10",
-      note: "Quarterly dividend from stocks",
-      userId: "user123",
-    },
-  ]);
+  const fetchIncomes = async () => {
+    setLoading(true);
+    try {
+      const response = await incomeAPI.getAll();
+      setIncomeEntries(response.data);
+    } catch (error) {
+      toast.error("Failed to fetch incomes");
+      console.error("Error fetching incomes:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIncomes();
+  }, []);
 
   const totalIncome = useMemo(() => {
     return incomeEntries.reduce((sum, entry) => sum + entry.amount, 0);
   }, [incomeEntries]);
 
-  const handleAddOrEdit = (data: IncomeFormData) => {
-    if (editingIncome) {
-      setIncomeEntries(
-        incomeEntries.map((e) =>
-          e.id === editingIncome.id ? { ...data, id: e.id } : e
-        )
+  const handleAddOrEdit = async (data: IncomeFormData) => {
+    try {
+      if (editingIncome) {
+        const response = await incomeAPI.update(editingIncome._id, data);
+        setIncomeEntries(
+          incomeEntries.map((e) =>
+            e._id === editingIncome._id ? response.data : e
+          )
+        );
+        toast.success("Income updated successfully");
+      } else {
+        const response = await incomeAPI.create(data);
+        setIncomeEntries([...incomeEntries, response.data]);
+        toast.success("Income added successfully");
+      }
+      setIsModalOpen(false);
+      setEditingIncome(null);
+    } catch (error) {
+      toast.error(
+        editingIncome ? "Failed to update income" : "Failed to add income"
       );
-    } else {
-      setIncomeEntries([...incomeEntries, { ...data, id: Date.now() }]);
+      console.error("Error saving income:", error);
     }
-    setIsModalOpen(false);
-    setEditingIncome(null);
   };
 
-  const openEditModal = (income: any) => {
+  const openEditModal = (income: Income) => {
     setEditingIncome(income);
     setIsModalOpen(true);
   };
 
-  const deleteIncome = (id: number) => {
-    setIncomeEntries(incomeEntries.filter((e) => e.id !== id));
+  const deleteIncome = async (id: string) => {
+    try {
+      await incomeAPI.delete(id);
+      setIncomeEntries(incomeEntries.filter((e) => e._id !== id));
+      toast.success("Income deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete income");
+      console.error("Error deleting income:", error);
+    }
   };
 
   return (
@@ -164,54 +182,64 @@ const AllIncome = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
-              {incomeEntries.map((income) => (
-                <tr
-                  key={income.id}
-                  className="hover:bg-gray-50/50 transition-colors"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-bold text-gray-900">
-                      {income.title}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-extrabold text-emerald-600">
-                      +${income.amount.toFixed(2)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-full">
-                      {income.source}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-                    {income.date}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium truncate max-w-[150px]">
-                    {income.note || "-"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => openEditModal(income)}
-                        className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                      >
-                        <Edit3 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteIncome(income.id)}
-                        className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center">
+                    <div className="text-gray-500">
+                      Loading income entries...
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                incomeEntries.map((income) => (
+                  <tr
+                    key={income._id}
+                    className="hover:bg-gray-50/50 transition-colors"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-bold text-gray-900">
+                        {income.title}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-extrabold text-emerald-600">
+                        +${income.amount.toFixed(2)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-full">
+                        {income.source}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                      {new Date(income.date).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium truncate max-w-[150px]">
+                      {income.note || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          onClick={() => openEditModal(income)}
+                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteIncome(income._id)}
+                          className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
-        {incomeEntries.length === 0 && (
+        {!loading && incomeEntries.length === 0 && (
           <div className="p-12 text-center">
             <Wallet className="h-12 w-12 text-gray-200 mx-auto mb-4" />
             <p className="text-gray-500 font-medium">
@@ -231,7 +259,7 @@ const AllIncome = () => {
       >
         <IncomeForm
           onSubmit={handleAddOrEdit}
-          initialData={editingIncome}
+          initialData={editingIncome || undefined}
           buttonText={editingIncome ? "Update Income" : "Add Income"}
         />
       </Modal>

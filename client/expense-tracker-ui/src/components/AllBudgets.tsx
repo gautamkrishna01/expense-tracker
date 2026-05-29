@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   PieChart,
   Plus,
@@ -8,60 +8,83 @@ import {
   Target,
   AlertCircle,
 } from "lucide-react";
+import { toast } from "react-toastify";
 import Modal from "./Modal";
 import BudgetForm, { type BudgetFormData } from "./BudgetForm";
+import { budgetAPI } from "../services/api";
+
+interface Budget {
+  _id: string;
+  title: string;
+  amount: number;
+  spent: number;
+  category: string;
+  month: string;
+  year: number;
+  note?: string;
+  userId?: string;
+}
 
 const AllBudgets = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingBudget, setEditingBudget] = useState<any>(null);
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Mock data with userId
-  const [budgets, setBudgets] = useState([
-    {
-      id: 1,
-      title: "Monthly Groceries",
-      amount: 500.0,
-      spent: 320.0,
-      category: "Food",
-      month: "March",
-      year: 2024,
-      note: "Budget for household groceries",
-      userId: "user123",
-    },
-    {
-      id: 2,
-      title: "Travel Fund",
-      amount: 1000.0,
-      spent: 150.0,
-      category: "Travel",
-      month: "March",
-      year: 2024,
-      note: "Savings for summer trip",
-      userId: "user123",
-    },
-  ]);
-
-  const handleAddOrEdit = (data: BudgetFormData) => {
-    if (editingBudget) {
-      setBudgets(
-        budgets.map((b) =>
-          b.id === editingBudget.id ? { ...data, id: b.id } : b
-        )
-      );
-    } else {
-      setBudgets([...budgets, { ...data, id: Date.now(), userId: "user123" }]);
+  const fetchBudgets = async () => {
+    setLoading(true);
+    try {
+      const response = await budgetAPI.getAll();
+      setBudgets(response.data);
+    } catch (error) {
+      toast.error("Failed to fetch budgets");
+      console.error("Error fetching budgets:", error);
+    } finally {
+      setLoading(false);
     }
-    setIsModalOpen(false);
-    setEditingBudget(null);
   };
 
-  const openEditModal = (budget: any) => {
+  useEffect(() => {
+    fetchBudgets();
+  }, []);
+
+  const handleAddOrEdit = async (data: BudgetFormData) => {
+    try {
+      if (editingBudget) {
+        const response = await budgetAPI.update(editingBudget._id, data);
+        setBudgets(
+          budgets.map((b) => (b._id === editingBudget._id ? response.data : b))
+        );
+        toast.success("Budget updated successfully");
+      } else {
+        const response = await budgetAPI.create(data);
+        setBudgets([...budgets, response.data]);
+        toast.success("Budget added successfully");
+      }
+      setIsModalOpen(false);
+      setEditingBudget(null);
+    } catch (error) {
+      toast.error(
+        editingBudget ? "Failed to update budget" : "Failed to add budget"
+      );
+      console.error("Error saving budget:", error);
+    }
+  };
+
+  const openEditModal = (budget: Budget) => {
     setEditingBudget(budget);
     setIsModalOpen(true);
   };
 
-  const deleteBudget = (id: number) => {
-    setBudgets(budgets.filter((b) => b.id !== id));
+  const deleteBudget = async (id: string) => {
+    try {
+      await budgetAPI.delete(id);
+      setBudgets(budgets.filter((b) => b._id !== id));
+      toast.success("Budget deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete budget");
+      console.error("Error deleting budget:", error);
+    }
   };
 
   return (
@@ -91,107 +114,113 @@ const AllBudgets = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {budgets.map((budget) => {
-          const remaining = budget.amount - budget.spent;
-          const percentSpent = Math.min(
-            (budget.spent / budget.amount) * 100,
-            100
-          );
-          const isOverBudget = budget.spent > budget.amount;
+        {loading ? (
+          <div className="col-span-full bg-white border border-gray-200 rounded-2xl p-12 text-center">
+            <div className="text-gray-500">Loading budgets...</div>
+          </div>
+        ) : (
+          budgets.map((budget) => {
+            const remaining = budget.amount - budget.spent;
+            const percentSpent = Math.min(
+              (budget.spent / budget.amount) * 100,
+              100
+            );
+            const isOverBudget = budget.spent > budget.amount;
 
-          return (
-            <div
-              key={budget.id}
-              className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <span className="px-2 py-1 text-[10px] font-bold bg-indigo-50 text-indigo-700 rounded-md uppercase tracking-wider mb-2 inline-block">
-                    {budget.category}
-                  </span>
-                  <h3 className="text-lg font-bold text-gray-900">
-                    {budget.title}
-                  </h3>
-                  <div className="flex items-center text-xs text-gray-400 font-medium mt-1">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    {budget.month} {budget.year}
-                  </div>
-                </div>
-                <div className="flex space-x-1">
-                  <button
-                    onClick={() => openEditModal(budget)}
-                    className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                  >
-                    <Edit3 className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteBudget(budget.id)}
-                    className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex justify-between items-end">
+            return (
+              <div
+                key={budget._id}
+                className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="flex justify-between items-start mb-4">
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
-                      Spent
-                    </p>
-                    <p
-                      className={`text-xl font-black ${
-                        isOverBudget ? "text-rose-600" : "text-gray-900"
-                      }`}
+                    <span className="px-2 py-1 text-[10px] font-bold bg-indigo-50 text-indigo-700 rounded-md uppercase tracking-wider mb-2 inline-block">
+                      {budget.category}
+                    </span>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      {budget.title}
+                    </h3>
+                    <div className="flex items-center text-xs text-gray-400 font-medium mt-1">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      {budget.month} {budget.year}
+                    </div>
+                  </div>
+                  <div className="flex space-x-1">
+                    <button
+                      onClick={() => openEditModal(budget)}
+                      className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                     >
-                      ${budget.spent.toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
-                      Remaining
-                    </p>
-                    <p className="text-xl font-black text-indigo-600">
-                      ${remaining.toFixed(2)}
-                    </p>
+                      <Edit3 className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteBudget(budget._id)}
+                      className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="space-y-2">
-                  <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-500 rounded-full ${
-                        isOverBudget ? "bg-rose-500" : "bg-indigo-600"
-                      }`}
-                      style={{ width: `${percentSpent}%` }}
-                    />
+                <div className="space-y-4">
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                        Spent
+                      </p>
+                      <p
+                        className={`text-xl font-black ${
+                          isOverBudget ? "text-rose-600" : "text-gray-900"
+                        }`}
+                      >
+                        ${budget.spent.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                        Remaining
+                      </p>
+                      <p className="text-xl font-black text-indigo-600">
+                        ${remaining.toFixed(2)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
-                    <span>Limit: ${budget.amount.toFixed(2)}</span>
-                    <span>{percentSpent.toFixed(0)}% Used</span>
+
+                  {/* Progress Bar */}
+                  <div className="space-y-2">
+                    <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 rounded-full ${
+                          isOverBudget ? "bg-rose-500" : "bg-indigo-600"
+                        }`}
+                        style={{ width: `${percentSpent}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
+                      <span>Limit: ${budget.amount.toFixed(2)}</span>
+                      <span>{percentSpent.toFixed(0)}% Used</span>
+                    </div>
                   </div>
+
+                  {isOverBudget && (
+                    <div className="flex items-center p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-xs font-bold">
+                      <AlertCircle className="h-4 w-4 mr-2 shrink-0" />
+                      Budget limit exceeded by $
+                      {(budget.spent - budget.amount).toFixed(2)}
+                    </div>
+                  )}
+
+                  {budget.note && (
+                    <p className="text-xs text-gray-500 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                      {budget.note}
+                    </p>
+                  )}
                 </div>
-
-                {isOverBudget && (
-                  <div className="flex items-center p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-xs font-bold">
-                    <AlertCircle className="h-4 w-4 mr-2 shrink-0" />
-                    Budget limit exceeded by $
-                    {(budget.spent - budget.amount).toFixed(2)}
-                  </div>
-                )}
-
-                {budget.note && (
-                  <p className="text-xs text-gray-500 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    {budget.note}
-                  </p>
-                )}
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
 
-        {budgets.length === 0 && (
+        {!loading && budgets.length === 0 && (
           <div className="col-span-full bg-white border border-dashed border-gray-200 rounded-2xl p-12 text-center">
             <Target className="h-12 w-12 text-gray-200 mx-auto mb-4" />
             <p className="text-gray-500 font-medium">
@@ -211,7 +240,7 @@ const AllBudgets = () => {
       >
         <BudgetForm
           onSubmit={handleAddOrEdit}
-          initialData={editingBudget}
+          initialData={editingBudget || undefined}
           buttonText={editingBudget ? "Update Budget" : "Create Budget"}
         />
       </Modal>

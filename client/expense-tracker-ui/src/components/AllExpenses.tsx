@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Receipt,
   Search,
@@ -8,64 +8,83 @@ import {
   Calendar,
   CreditCard,
 } from "lucide-react";
+import { toast } from "react-toastify";
 import Modal from "./Modal";
 import ExpenseForm, { type ExpenseFormData } from "./ExpenseForm";
+import { expenseAPI } from "../services/api";
+
+interface Expense {
+  _id: string;
+  title: string;
+  category: string;
+  amount: number;
+  date: string;
+  paymentMethod: string;
+  note?: string;
+}
 
 const AllExpenses = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingExpense, setEditingExpense] = useState<any>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Mock data
-  const [expenses, setExpenses] = useState([
-    {
-      id: 1,
-      title: "Grocery Shopping",
-      category: "Food & Drinks",
-      amount: 120.5,
-      date: "2024-03-20",
-      paymentMethod: "Card",
-      note: "Weekly groceries",
-    },
-    {
-      id: 2,
-      title: "Rent Payment",
-      category: "Housing",
-      amount: 1500.0,
-      date: "2024-03-01",
-      paymentMethod: "Wallet",
-      note: "Monthly rent",
-    },
-    {
-      id: 3,
-      title: "Electric Bill",
-      category: "Housing",
-      amount: 85.2,
-      date: "2024-03-15",
-      paymentMethod: "Cash",
-    },
-  ]);
-
-  const handleAddOrEdit = (data: ExpenseFormData) => {
-    if (editingExpense) {
-      setExpenses(
-        expenses.map((e) =>
-          e.id === editingExpense.id ? { ...data, id: e.id } : e
-        )
-      );
-    } else {
-      setExpenses([...expenses, { ...data, id: Date.now() }]);
+  const fetchExpenses = async () => {
+    setLoading(true);
+    try {
+      const response = await expenseAPI.getAll();
+      setExpenses(response.data);
+    } catch (error) {
+      toast.error("Failed to fetch expenses");
+      console.error("Error fetching expenses:", error);
+    } finally {
+      setLoading(false);
     }
-    setIsModalOpen(false);
-    setEditingExpense(null);
   };
 
-  const openEditModal = (expense: any) => {
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
+
+  const handleAddOrEdit = async (data: ExpenseFormData) => {
+    try {
+      if (editingExpense) {
+        const response = await expenseAPI.update(editingExpense._id, data);
+        setExpenses(
+          expenses.map((e) =>
+            e._id === editingExpense._id ? response.data : e
+          )
+        );
+        toast.success("Expense updated successfully");
+      } else {
+        const response = await expenseAPI.create(data);
+        setExpenses([...expenses, response.data]);
+        toast.success("Expense added successfully");
+      }
+      setIsModalOpen(false);
+      setEditingExpense(null);
+    } catch (error) {
+      toast.error(
+        editingExpense ? "Failed to update expense" : "Failed to add expense"
+      );
+      console.error("Error saving expense:", error);
+    }
+  };
+
+  const openEditModal = (expense: Expense) => {
     setEditingExpense(expense);
     setIsModalOpen(true);
   };
 
-  const deleteExpense = (id: number) => {
-    setExpenses(expenses.filter((e) => e.id !== id));
+  const deleteExpense = async (id: string) => {
+    try {
+      await expenseAPI.delete(id);
+      setExpenses(expenses.filter((e) => e._id !== id));
+      toast.success("Expense deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete expense");
+      console.error("Error deleting expense:", error);
+    }
   };
 
   return (
@@ -145,60 +164,68 @@ const AllExpenses = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
-              {expenses.map((expense) => (
-                <tr
-                  key={expense.id}
-                  className="hover:bg-gray-50/50 transition-colors"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-bold text-gray-900">
-                      {expense.title}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2.5 py-1 text-xs font-bold bg-indigo-50 text-indigo-700 rounded-full">
-                      {expense.category}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-extrabold text-gray-900">
-                      ${expense.amount.toFixed(2)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-                    {expense.date}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CreditCard className="h-4 w-4 mr-2 text-gray-400" />
-                      {expense.paymentMethod}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium truncate max-w-[150px]">
-                    {expense.note || "-"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => openEditModal(expense)}
-                        className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                      >
-                        <Edit3 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteExpense(expense.id)}
-                        className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center">
+                    <div className="text-gray-500">Loading expenses...</div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                expenses.map((expense) => (
+                  <tr
+                    key={expense._id}
+                    className="hover:bg-gray-50/50 transition-colors"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-bold text-gray-900">
+                        {expense.title}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2.5 py-1 text-xs font-bold bg-indigo-50 text-indigo-700 rounded-full">
+                        {expense.category}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-extrabold text-gray-900">
+                        ${expense.amount.toFixed(2)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                      {new Date(expense.date).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <CreditCard className="h-4 w-4 mr-2 text-gray-400" />
+                        {expense.paymentMethod}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium truncate max-w-[150px]">
+                      {expense.note || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          onClick={() => openEditModal(expense)}
+                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteExpense(expense._id)}
+                          className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
-        {expenses.length === 0 && (
+        {!loading && expenses.length === 0 && (
           <div className="p-12 text-center">
             <Receipt className="h-12 w-12 text-gray-200 mx-auto mb-4" />
             <p className="text-gray-500 font-medium">
@@ -218,7 +245,7 @@ const AllExpenses = () => {
       >
         <ExpenseForm
           onSubmit={handleAddOrEdit}
-          initialData={editingExpense}
+          initialData={editingExpense || undefined}
           buttonText={editingExpense ? "Update Expense" : "Add Expense"}
         />
       </Modal>
