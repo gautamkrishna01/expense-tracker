@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -10,34 +10,14 @@ import {
   User,
   Settings,
   LogOut,
-  ChevronDown,
-  PlusCircle,
-  List,
-  Tags,
 } from "lucide-react";
 
 const Sidebar = () => {
-  const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({
-    expenses: true,
-    income: false,
-  });
-
-  const toggleMenu = (menu: string) => {
-    setOpenMenus((prev) => ({ ...prev, [menu]: !prev[menu] }));
-  };
-
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
       isActive
         ? "bg-indigo-50 text-indigo-700"
         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-    }`;
-
-  const subItemClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center pl-11 pr-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-      isActive
-        ? "text-indigo-600"
-        : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
     }`;
 
   return (
@@ -59,67 +39,15 @@ const Sidebar = () => {
           Dashboard
         </NavLink>
 
-        {/* Expenses Collapsible */}
-        <div>
-          <button
-            onClick={() => toggleMenu("expenses")}
-            className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
-          >
-            <div className="flex items-center">
-              <Receipt className="mr-3 h-5 w-5 text-gray-400" />
-              Expenses
-            </div>
-            <ChevronDown
-              className={`h-4 w-4 transition-transform ${
-                openMenus.expenses ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-          {openMenus.expenses && (
-            <div className="mt-1 space-y-1">
-              <NavLink to="/expenses/all" className={subItemClass}>
-                <List className="mr-2 h-4 w-4 opacity-70" />
-                All Expenses
-              </NavLink>
-              <NavLink to="/expenses/add" className={subItemClass}>
-                <PlusCircle className="mr-2 h-4 w-4 opacity-70" />
-                Add Expense
-              </NavLink>
-              <NavLink to="/expenses/categories" className={subItemClass}>
-                <Tags className="mr-2 h-4 w-4 opacity-70" />
-                Categories
-              </NavLink>
-            </div>
-          )}
-        </div>
+        <NavLink to="/expenses/all" className={navItemClass}>
+          <Receipt className="mr-3 h-5 w-5" />
+          Expenses
+        </NavLink>
 
-        {/* Income Collapsible */}
-        <div>
-          <button
-            onClick={() => toggleMenu("income")}
-            className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
-          >
-            <div className="flex items-center">
-              <Wallet className="mr-3 h-5 w-5 text-gray-400" />
-              Income
-            </div>
-            <ChevronDown
-              className={`h-4 w-4 transition-transform ${
-                openMenus.income ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-          {openMenus.income && (
-            <div className="mt-1 space-y-1">
-              <NavLink to="/income/all" className={subItemClass}>
-                All Income
-              </NavLink>
-              <NavLink to="/income/add" className={subItemClass}>
-                Add Income
-              </NavLink>
-            </div>
-          )}
-        </div>
+        <NavLink to="/income/all" className={navItemClass}>
+          <Wallet className="mr-3 h-5 w-5" />
+          Income
+        </NavLink>
 
         <NavLink to="/budget" className={navItemClass}>
           <PieChart className="mr-3 h-5 w-5" />

@@ -5,11 +5,20 @@ import {
   Navigate,
   Outlet,
 } from "react-router-dom";
+import Sidebar from "./components/Sidebar";
 import Auth from "./components/Auth";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
-import Sidebar from "./components/Sidebar";
 import Dashboard from "./components/Dashboard";
+import AllExpenses from "./components/AllExpenses";
+import AddExpense from "./components/AddExpense";
+import AllIncome from "./components/AllIncome";
+import AddIncome from "./components/AddIncome";
+import AllBudgets from "./components/AllBudgets";
+import Reports from "./components/Reports";
+import Notifications from "./components/Notifications";
+import Profile from "./components/Profile";
+import { Settings } from "lucide-react";
 
 // Layout component to wrap protected routes with the Sidebar
 const MainLayout = () => {
@@ -37,46 +46,19 @@ function App() {
         {/* Authenticated Routes with Sidebar */}
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route
-            path="/expenses/all"
-            element={<div className="text-2xl font-bold">All Expenses</div>}
-          />
-          <Route
-            path="/expenses/add"
-            element={<div className="text-2xl font-bold">Add Expense</div>}
-          />
+          <Route path="/expenses/all" element={<AllExpenses />} />
+          <Route path="/expenses/add" element={<AddExpense />} />
           <Route
             path="/expenses/categories"
             element={<div className="text-2xl font-bold">Categories</div>}
           />
-          <Route
-            path="/income/all"
-            element={<div className="text-2xl font-bold">All Income</div>}
-          />
-          <Route
-            path="/income/add"
-            element={<div className="text-2xl font-bold">Add Income</div>}
-          />
-          <Route
-            path="/budget"
-            element={<div className="text-2xl font-bold">Budget</div>}
-          />
-          <Route
-            path="/reports"
-            element={<div className="text-2xl font-bold">Reports</div>}
-          />
-          <Route
-            path="/notifications"
-            element={<div className="text-2xl font-bold">Notifications</div>}
-          />
-          <Route
-            path="/profile"
-            element={<div className="text-2xl font-bold">Profile</div>}
-          />
-          <Route
-            path="/settings"
-            element={<div className="text-2xl font-bold">Settings</div>}
-          />
+          <Route path="/income/all" element={<AllIncome />} />
+          <Route path="/income/add" element={<AddIncome />} />
+          <Route path="/budget" element={<AllBudgets />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/login" />} />
