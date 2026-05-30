@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Transaction from "../models/Transaction";
 import Budget from "../models/Budget";
+import Saving from "../models/Saving";
 
 interface AuthRequest extends Request {
   user?: {
@@ -28,8 +29,11 @@ export const getDashboardSummary = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
 
-    // Get all transactions
-    const transactions = await Transaction.find({ user: userId });
+    // Get all transactions and savings records
+    const [transactions, savingsRecords] = await Promise.all([
+      Transaction.find({ user: userId }),
+      Saving.find({ user: userId }),
+    ]);
 
     // Get total income (type: "income")
     const incomes = transactions.filter((t) => t.type === "income");
@@ -45,8 +49,8 @@ export const getDashboardSummary = async (req: AuthRequest, res: Response) => {
     // Calculate balance
     const balance = totalIncome - totalExpense;
 
-    // Get savings (could be calculated from budgets or a separate calculation)
-    const savings = balance > 0 ? balance : 0;
+    // Get total savings from the Savings collection
+    const totalSavings = savingsRecords.reduce((sum, s) => sum + s.amount, 0);
 
     // Get expenses by category for the current month
     const currentMonth = new Date().getMonth();
@@ -67,25 +71,35 @@ export const getDashboardSummary = async (req: AuthRequest, res: Response) => {
     });
 
     // Get recent transactions (last 5)
-    const recentTransactions = [
-      ...incomes.slice(0, 3).map((income) => ({
-        id: income._id,
-        title: income.title,
-        amount: income.amount,
-        date: income.date,
+    const allRecentItems = [
+      ...incomes.map((item) => ({
+        id: item._id,
+        title: item.title,
+        amount: item.amount,
+        date: item.date,
         type: "income" as const,
-        category: income.category,
+        category: item.category,
       })),
-      ...expenses.slice(0, 3).map((expense) => ({
-        id: expense._id,
-        title: expense.title,
-        amount: -expense.amount,
-        date: expense.date,
+      ...expenses.map((item) => ({
+        id: item._id,
+        title: item.title,
+        amount: -item.amount,
+        date: item.date,
         type: "expense" as const,
-        category: expense.category,
+        category: item.category,
       })),
-    ]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      ...savingsRecords.map((item) => ({
+        id: item._id,
+        title: item.title,
+        amount: item.amount,
+        date: item.date,
+        type: "saving" as const,
+        category: item.category,
+      })),
+    ];
+
+    const recentTransactions = allRecentItems
+      .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 5);
 
     // Get monthly data for chart (last 6 months)
@@ -124,7 +138,7 @@ export const getDashboardSummary = async (req: AuthRequest, res: Response) => {
       totalIncome,
       totalExpense,
       balance,
-      savings,
+      savings: totalSavings,
       expensesByCategory,
       recentTransactions,
       monthlyData,

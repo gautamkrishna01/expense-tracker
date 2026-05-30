@@ -23,7 +23,7 @@ interface DashboardSummary {
     title: string;
     amount: number;
     date: string;
-    type: "income" | "expense";
+    type: "income" | "expense" | "saving";
     category: string;
   }>;
   monthlyData: Array<{
@@ -341,11 +341,15 @@ const Dashboard = () => {
                     className={`p-2 rounded-lg ${
                       transaction.type === "income"
                         ? "bg-emerald-100"
+                        : transaction.type === "saving"
+                        ? "bg-amber-100"
                         : "bg-rose-100"
                     }`}
                   >
                     {transaction.type === "income" ? (
                       <ArrowUpCircle className="h-5 w-5 text-emerald-600" />
+                    ) : transaction.type === "saving" ? (
+                      <PiggyBank className="h-5 w-5 text-amber-600" />
                     ) : (
                       <ArrowDownCircle className="h-5 w-5 text-rose-600" />
                     )}
@@ -364,10 +368,12 @@ const Dashboard = () => {
                     className={`font-bold ${
                       transaction.type === "income"
                         ? "text-emerald-600"
+                        : transaction.type === "saving"
+                        ? "text-amber-600"
                         : "text-rose-600"
                     }`}
                   >
-                    {transaction.type === "income" ? "+" : "-"}
+                    {transaction.type === "expense" ? "-" : "+"}
                     {currencySymbol}{" "}
                     {Math.abs(transaction.amount).toLocaleString("en-US", {
                       minimumFractionDigits: 2,
