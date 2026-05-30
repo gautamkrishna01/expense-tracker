@@ -18,6 +18,10 @@ export const authAPI = {
     api.post("/auth/login", data),
   getCurrentUser: () => api.get("/auth/me"),
   logout: () => api.post("/auth/logout"),
+  updateProfile: (data: { name?: string; email?: string }) =>
+    api.put("/auth/profile", data),
+  updatePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.put("/auth/password", data),
 };
 
 // Expense API

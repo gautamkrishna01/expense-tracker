@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -71,28 +71,28 @@ const Reports = () => {
     "#ec4899", // pink-500
   ];
 
-  const fetchReportData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await reportsAPI.getFinancialReport({ period });
-      const data = response.data;
-
-      setMonthlyData(data.monthlyData || []);
-      setCategoryData(data.categoryData || []);
-      setSummary(data.summary || null);
-      setInsights(data.insights || []);
-    } catch (err) {
-      setError("Failed to load report data");
-      console.error("Error fetching report data:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [period]);
-
   useEffect(() => {
+    const fetchReportData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await reportsAPI.getFinancialReport({ period });
+        const data = response.data;
+
+        setMonthlyData(data.monthlyData || []);
+        setCategoryData(data.categoryData || []);
+        setSummary(data.summary || null);
+        setInsights(data.insights || []);
+      } catch (err) {
+        setError("Failed to load report data");
+        console.error("Error fetching report data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchReportData();
-  }, [fetchReportData]);
+  }, [period]);
 
   const stats = summary
     ? [

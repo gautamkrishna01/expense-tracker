@@ -24,14 +24,29 @@ import Notifications from "./components/Notifications";
 import Profile from "./components/Profile";
 import Settings from "./components/Settings";
 
+// User context for sharing user data between components
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  createdAt?: string;
+}
+
+interface UserContextType {
+  user: User | null;
+  updateUser: (userData: Partial<User>) => void;
+}
+
+const UserContext = React.createContext<UserContextType>({
+  user: null,
+  updateUser: () => {},
+});
+
 // Layout component to wrap protected routes with the Sidebar
 const MainLayout = () => {
   const [loading, setLoading] = React.useState(true);
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-  const [user, setUser] = React.useState<{
-    name: string;
-    email: string;
-  } | null>(null);
+  const [user, setUser] = React.useState<User | null>(null);
 
   React.useEffect(() => {
     const checkAuth = async () => {
@@ -40,7 +55,7 @@ const MainLayout = () => {
         const response = await authAPI.getCurrentUser();
         setUser(response.data);
         setIsAuthenticated(true);
-      } catch (err) {
+      } catch {
         setIsAuthenticated(false);
       } finally {
         setLoading(false);
@@ -49,6 +64,10 @@ const MainLayout = () => {
 
     checkAuth();
   }, []);
+
+  const updateUser = (userData: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...userData } : null));
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -60,17 +79,22 @@ const MainLayout = () => {
   }
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1 ml-64 flex flex-col min-h-screen bg-gray-50">
-        <TopBar user={user} />
-        <main className="p-8">
-          <Outlet />
-        </main>
+    <UserContext.Provider value={{ user, updateUser }}>
+      <div className="flex">
+        <Sidebar />
+        <div className="flex-1 ml-64 flex flex-col min-h-screen bg-gray-50">
+          <TopBar />
+          <main className="p-8">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+    </UserContext.Provider>
   );
 };
+
+// Export context for use in other components
+export { UserContext };
 
 function App() {
   return (

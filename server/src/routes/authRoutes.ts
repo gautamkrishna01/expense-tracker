@@ -4,6 +4,8 @@ import {
   login,
   getCurrentUser,
   logout,
+  updateProfile,
+  updatePassword,
 } from "../controllers/authController";
 import { protect } from "../middleware/authMiddleware";
 import { body } from "express-validator";
@@ -38,5 +40,34 @@ router.get("/me", protect, getCurrentUser);
 
 // Logout route
 router.post("/logout", logout);
+
+// Update profile route (protected)
+router.put(
+  "/profile",
+  protect,
+  [
+    body("email")
+      .optional()
+      .isEmail()
+      .withMessage("Please enter a valid email"),
+    body("name").optional().notEmpty().withMessage("Name cannot be empty"),
+  ],
+  updateProfile
+);
+
+// Update password route (protected)
+router.put(
+  "/password",
+  protect,
+  [
+    body("currentPassword")
+      .exists()
+      .withMessage("Current password is required"),
+    body("newPassword")
+      .isLength({ min: 6 })
+      .withMessage("New password must be at least 6 characters"),
+  ],
+  updatePassword
+);
 
 export default router;
