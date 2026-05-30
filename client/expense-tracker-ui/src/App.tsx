@@ -15,6 +15,7 @@ import AddExpense from "./pages/AddExpense";
 import AllIncome from "./pages/AllIncome";
 import AddIncome from "./pages/AddIncome";
 import AllBudgets from "./pages/AllBudgets";
+import AllSavings from "./pages/AllSavings";
 import Auth from "./components/Auth";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
@@ -147,6 +148,7 @@ function App() {
           />
           <Route path="/income/all" element={<AllIncome />} />
           <Route path="/income/add" element={<AddIncome />} />
+          <Route path="/savings/all" element={<AllSavings />} />
           <Route path="/budget" element={<AllBudgets />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/notifications" element={<Notifications />} />

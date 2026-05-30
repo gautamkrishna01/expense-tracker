@@ -56,6 +56,15 @@ export const incomeAPI = {
   delete: (id: string) => api.delete(`/income/${id}`),
 };
 
+// Saving API
+export const savingAPI = {
+  getAll: () => api.get("/savings"),
+  getById: (id: string) => api.get(`/savings/${id}`),
+  create: (data: any) => api.post("/savings", data),
+  update: (id: string, data: any) => api.put(`/savings/${id}`, data),
+  delete: (id: string) => api.delete(`/savings/${id}`),
+};
+
 // Budget API
 export const budgetAPI = {
   getAll: () => api.get("/budgets"),

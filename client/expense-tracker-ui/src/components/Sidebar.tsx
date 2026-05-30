@@ -4,6 +4,7 @@ import { authAPI } from "../services/api";
 import {
   LayoutDashboard,
   Receipt,
+  PiggyBank,
   Wallet,
   PieChart,
   BarChart3,
@@ -83,6 +84,11 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         <NavLink to="/income/all" className={navItemClass}>
           <Wallet className="mr-3 h-5 w-5" />
           Income
+        </NavLink>
+
+        <NavLink to="/savings/all" className={navItemClass}>
+          <PiggyBank className="mr-3 h-5 w-5" />
+          Savings
         </NavLink>
 
         <NavLink to="/budget" className={navItemClass}>
