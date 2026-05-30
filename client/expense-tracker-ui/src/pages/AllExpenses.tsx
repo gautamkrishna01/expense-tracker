@@ -115,10 +115,6 @@ const AllExpenses = () => {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, startDate, endDate, selectedMonth, sortBy]);
 
-  const totalExpenses = useMemo(() => {
-    return expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  }, [expenses]);
-
   const startItem =
     totalResults === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
   const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalResults);
