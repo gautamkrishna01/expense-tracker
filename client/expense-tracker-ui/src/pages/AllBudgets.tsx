@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useContext } from "react";
 import {
   PieChart,
   Plus,
@@ -14,6 +14,8 @@ import BudgetForm, { type BudgetFormData } from "../components/BudgetForm";
 import FilterBar from "../components/FilterBar";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { budgetAPI } from "../services/api";
+import { UserContext } from "../App";
+import { CURRENCIES } from "../constants";
 
 const CATEGORIES = [
   "Food",
@@ -52,6 +54,11 @@ const AllBudgets = () => {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const userContext = useContext(UserContext);
+  const currencyCode = userContext?.user?.settings?.currency || "USD";
+  const currencySymbol =
+    CURRENCIES.find((c) => c.code === currencyCode)?.symbol || "$";
 
   const fetchBudgets = async () => {
     setLoading(true);
@@ -247,7 +254,7 @@ const AllBudgets = () => {
                           isOverBudget ? "text-rose-600" : "text-gray-900"
                         }`}
                       >
-                        Rs. {budget.spent.toFixed(2)}
+                        {currencySymbol} {budget.spent.toFixed(2)}
                       </p>
                     </div>
                     <div className="text-right">
@@ -255,7 +262,7 @@ const AllBudgets = () => {
                         Remaining
                       </p>
                       <p className="text-xl font-black text-indigo-600">
-                        Rs. {remaining.toFixed(2)}
+                        {currencySymbol} {remaining.toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -271,7 +278,9 @@ const AllBudgets = () => {
                       />
                     </div>
                     <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
-                      <span>Limit: Rs. {budget.amount.toFixed(2)}</span>
+                      <span>
+                        Limit: {currencySymbol} {budget.amount.toFixed(2)}
+                      </span>
                       <span>{percentSpent.toFixed(0)}% Used</span>
                     </div>
                   </div>
@@ -279,7 +288,7 @@ const AllBudgets = () => {
                   {isOverBudget && (
                     <div className="flex items-center p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-xs font-bold">
                       <AlertCircle className="h-4 w-4 mr-2 shrink-0" />
-                      Budget limit exceeded by Rs.{" "}
+                      Budget limit exceeded by {currencySymbol}{" "}
                       {(budget.spent - budget.amount).toFixed(2)}
                     </div>
                   )}

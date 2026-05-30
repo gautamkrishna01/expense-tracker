@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   BarChart,
   Bar,
@@ -23,6 +23,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { reportsAPI } from "../services/api";
+import { UserContext } from "../App";
+import { CURRENCIES } from "../constants";
 
 interface MonthlyData {
   month: string;
@@ -58,6 +60,11 @@ const Reports = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState("6months");
+
+  const userContext = useContext(UserContext);
+  const currencyCode = userContext?.user?.settings?.currency || "USD";
+  const currencySymbol =
+    CURRENCIES.find((c) => c.code === currencyCode)?.symbol || "$";
 
   // Color palette for categories
   const categoryColors = [
@@ -104,7 +111,7 @@ const Reports = () => {
         },
         {
           label: "Avg. Expense",
-          value: `Rs. ${summary.avgExpense.toLocaleString()}`,
+          value: `${currencySymbol} ${summary.avgExpense.toLocaleString()}`,
           sub: `Based on last ${
             period === "1year"
               ? "year"
@@ -116,7 +123,7 @@ const Reports = () => {
         },
         {
           label: "Best Saving",
-          value: `Rs. ${summary.bestSaving.amount.toLocaleString()}`,
+          value: `${currencySymbol} ${summary.bestSaving.amount.toLocaleString()}`,
           sub: `Achieved in ${summary.bestSaving.month || "N/A"}`,
           icon: <TrendingUp className="h-5 w-5 text-emerald-500" />,
         },
@@ -307,7 +314,7 @@ const Reports = () => {
                       </span>
                     </div>
                     <span className="text-sm font-extrabold text-gray-900">
-                      Rs. {item.value.toLocaleString()}
+                      {currencySymbol} {item.value.toLocaleString()}
                     </span>
                   </div>
                 ))}
@@ -366,7 +373,8 @@ const Reports = () => {
                 Opening Balance
               </p>
               <p className="text-sm font-extrabold text-gray-900">
-                Rs. {summary?.openingBalance.toLocaleString() || "0"}
+                {currencySymbol}{" "}
+                {summary?.openingBalance.toLocaleString() || "0"}
               </p>
             </div>
             <ChevronRight className="text-gray-300 h-4 w-4" />
@@ -375,7 +383,8 @@ const Reports = () => {
                 Closing Balance
               </p>
               <p className="text-sm font-extrabold text-indigo-600">
-                Rs. {summary?.closingBalance.toLocaleString() || "0"}
+                {currencySymbol}{" "}
+                {summary?.closingBalance.toLocaleString() || "0"}
               </p>
             </div>
           </div>

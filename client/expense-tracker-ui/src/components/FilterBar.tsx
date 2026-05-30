@@ -1,11 +1,7 @@
 import React from "react";
-import {
-  Search,
-  Filter,
-  Calendar,
-  DollarSign,
-  ArrowUpDown,
-} from "lucide-react";
+import { Search, Filter, Calendar, Coins, ArrowUpDown } from "lucide-react";
+import { NepaliDatePicker } from "nepali-datepicker-reactjs";
+import "nepali-datepicker-reactjs/dist/index.css";
 
 interface FilterBarProps {
   searchTerm: string;
@@ -61,18 +57,18 @@ const FilterBar: React.FC<FilterBarProps> = ({
       {/* Date Range */}
       <div className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
         <Calendar className="h-4 w-4 text-gray-400" />
-        <input
-          type="date"
+        <NepaliDatePicker
+          inputClassName="bg-transparent text-xs font-semibold text-gray-600 focus:outline-none w-24"
           value={startDate}
-          onChange={(e) => onStartDateChange(e.target.value)}
-          className="bg-transparent text-xs font-semibold text-gray-600 focus:outline-none"
+          onChange={(value: string) => onStartDateChange(value)}
+          options={{ calenderType: "Nepali", format: "YYYY-MM-DD" }}
         />
         <span className="text-gray-300">-</span>
-        <input
-          type="date"
+        <NepaliDatePicker
+          inputClassName="bg-transparent text-xs font-semibold text-gray-600 focus:outline-none w-24"
           value={endDate}
-          onChange={(e) => onEndDateChange(e.target.value)}
-          className="bg-transparent text-xs font-semibold text-gray-600 focus:outline-none"
+          onChange={(value: string) => onEndDateChange(value)}
+          options={{ calenderType: "Nepali", format: "YYYY-MM-DD" }}
         />
       </div>
 
@@ -95,7 +91,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* Amount Range */}
       <div className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
-        <DollarSign className="h-4 w-4 text-gray-400" />
+        <Coins className="h-4 w-4 text-gray-400" />
         <input
           type="number"
           placeholder="Min"

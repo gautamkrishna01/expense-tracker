@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   ArrowUpCircle,
   ArrowDownCircle,
-  DollarSign,
+  Wallet,
   PiggyBank,
   TrendingUp,
   LayoutDashboard,
   MoreHorizontal,
 } from "lucide-react";
 import { dashboardAPI } from "../services/api";
+import { UserContext } from "../App";
+import { CURRENCIES } from "../constants";
 
 interface DashboardSummary {
   totalIncome: number;
@@ -35,6 +37,11 @@ const Dashboard = () => {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const userContext = useContext(UserContext);
+  const currencyCode = userContext?.user?.settings?.currency || "USD";
+  const currencySymbol =
+    CURRENCIES.find((c) => c.code === currencyCode)?.symbol || "$";
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -77,11 +84,11 @@ const Dashboard = () => {
     ? [
         {
           label: "Total Balance",
-          amount: `Rs. ${summary.balance.toLocaleString("en-US", {
+          amount: `${currencySymbol} ${summary.balance.toLocaleString("en-US", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,
-          icon: <DollarSign className="h-6 w-6 text-white" />,
+          icon: <Wallet className="h-6 w-6 text-white" />,
           color: "bg-indigo-600",
           trend: calculateTrend(
             summary.balance,
@@ -90,27 +97,33 @@ const Dashboard = () => {
         },
         {
           label: "Total Income",
-          amount: `Rs. ${summary.totalIncome.toLocaleString("en-US", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`,
+          amount: `${currencySymbol} ${summary.totalIncome.toLocaleString(
+            "en-US",
+            {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }
+          )}`,
           icon: <ArrowUpCircle className="h-6 w-6 text-white" />,
           color: "bg-emerald-500",
           trend: calculateTrend(summary.totalIncome, previousMonth.income),
         },
         {
           label: "Total Expense",
-          amount: `Rs. ${summary.totalExpense.toLocaleString("en-US", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`,
+          amount: `${currencySymbol} ${summary.totalExpense.toLocaleString(
+            "en-US",
+            {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }
+          )}`,
           icon: <ArrowDownCircle className="h-6 w-6 text-white" />,
           color: "bg-rose-500",
           trend: calculateTrend(summary.totalExpense, previousMonth.expense),
         },
         {
           label: "Savings",
-          amount: `Rs. ${summary.savings.toLocaleString("en-US", {
+          amount: `${currencySymbol} ${summary.savings.toLocaleString("en-US", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,
@@ -354,7 +367,8 @@ const Dashboard = () => {
                         : "text-rose-600"
                     }`}
                   >
-                    {transaction.type === "income" ? "+" : "-"}Rs.{" "}
+                    {transaction.type === "income" ? "+" : "-"}
+                    {currencySymbol}{" "}
                     {Math.abs(transaction.amount).toLocaleString("en-US", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,

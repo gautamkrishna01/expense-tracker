@@ -4,6 +4,8 @@ import {
   User,
   Mail,
   Camera,
+  Eye,
+  EyeOff,
   Key,
   Save,
   Calendar,
@@ -74,6 +76,9 @@ const Profile = () => {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordUpdating, setPasswordUpdating] = useState(false);
   const [toast, setToast] = useState<{
     message: string;
@@ -349,14 +354,27 @@ const Profile = () => {
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
                   Current Password
                 </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  {...registerPass("currentPassword", {
-                    required: "Current password is required",
-                  })}
-                  className="block w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all sm:text-sm"
-                />
+                <div className="relative">
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...registerPass("currentPassword", {
+                      required: "Current password is required",
+                    })}
+                    className="block w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all sm:text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
+                  >
+                    {showCurrentPassword ? (
+                      <EyeOff size={20} />
+                    ) : (
+                      <Eye size={20} />
+                    )}
+                  </button>
+                </div>
                 {passErrors.currentPassword && (
                   <p className="mt-1 text-xs text-red-500">
                     {passErrors.currentPassword.message}
@@ -368,15 +386,28 @@ const Profile = () => {
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
                     New Password
                   </label>
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    {...registerPass("newPassword", {
-                      required: "New password is required",
-                      minLength: { value: 6, message: "Min 6 characters" },
-                    })}
-                    className="block w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all sm:text-sm"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      {...registerPass("newPassword", {
+                        required: "New password is required",
+                        minLength: { value: 6, message: "Min 6 characters" },
+                      })}
+                      className="block w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all sm:text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
+                    >
+                      {showNewPassword ? (
+                        <EyeOff size={20} />
+                      ) : (
+                        <Eye size={20} />
+                      )}
+                    </button>
+                  </div>
                   {passErrors.newPassword && (
                     <p className="mt-1 text-xs text-red-500">
                       {passErrors.newPassword.message}
@@ -387,17 +418,32 @@ const Profile = () => {
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
                     Confirm New Password
                   </label>
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    {...registerPass("confirmPassword", {
-                      required: "Please confirm",
-                      validate: (val) =>
-                        watch("newPassword") === val ||
-                        "Passwords do not match",
-                    })}
-                    className="block w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all sm:text-sm"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      {...registerPass("confirmPassword", {
+                        required: "Please confirm",
+                        validate: (val) =>
+                          watch("newPassword") === val ||
+                          "Passwords do not match",
+                      })}
+                      className="block w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all sm:text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={20} />
+                      ) : (
+                        <Eye size={20} />
+                      )}
+                    </button>
+                  </div>
                   {passErrors.confirmPassword && (
                     <p className="mt-1 text-xs text-red-500">
                       {passErrors.confirmPassword.message}

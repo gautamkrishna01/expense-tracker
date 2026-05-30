@@ -1,11 +1,13 @@
-import { useState, useEffect, useMemo } from "react";
-import { Receipt, Edit3, Trash2, CreditCard, DollarSign } from "lucide-react";
+import { useState, useEffect, useMemo, useContext } from "react";
+import { Receipt, Edit3, Trash2, CreditCard } from "lucide-react";
 import { toast } from "react-toastify";
 import Modal from "../components/Modal";
 import ExpenseForm, { type ExpenseFormData } from "../components/ExpenseForm";
 import FilterBar from "../components/FilterBar";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { expenseAPI } from "../services/api";
+import { UserContext } from "../App";
+import { CURRENCIES } from "../constants";
 
 const CATEGORIES = [
   "Food & Drinks",
@@ -44,6 +46,11 @@ const AllExpenses = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const userContext = useContext(UserContext);
+  const currencyCode = userContext?.user?.settings?.currency || "USD";
+  const currencySymbol =
+    CURRENCIES.find((c) => c.code === currencyCode)?.symbol || "$";
 
   const fetchExpenses = async () => {
     setLoading(true);
@@ -192,14 +199,14 @@ const AllExpenses = () => {
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="p-3 bg-rose-100 rounded-xl shadow-inner">
-            <DollarSign className="h-6 w-6 text-rose-600" />
+            <Receipt className="h-6 w-6 text-rose-600" />
           </div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
               Total Expense
             </p>
             <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-              Rs. {totalExpenses.toFixed(2)}
+              {currencySymbol} {totalExpenses.toFixed(2)}
             </h3>
           </div>
         </div>
@@ -279,7 +286,7 @@ const AllExpenses = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-extrabold text-gray-900">
-                        Rs. {expense.amount.toFixed(2)}
+                        {currencySymbol} {expense.amount.toFixed(2)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">

@@ -1,5 +1,7 @@
-import * as React from "react";
+import React, { useContext } from "react";
 import { useForm } from "react-hook-form";
+import { UserContext } from "../App";
+import { CURRENCIES } from "../constants";
 
 export interface IncomeFormData {
   title: string;
@@ -21,6 +23,11 @@ const IncomeForm = ({
   initialData,
   buttonText = "Save Income",
 }: IncomeFormProps) => {
+  const userContext = useContext(UserContext);
+  const currencyCode = userContext?.user?.settings?.currency || "USD";
+  const currencySymbol =
+    CURRENCIES.find((c) => c.code === currencyCode)?.symbol || "$";
+
   const {
     register,
     handleSubmit,
@@ -65,7 +72,9 @@ const IncomeForm = ({
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-500 sm:text-xs font-bold">Rs.</span>
+              <span className="text-gray-500 sm:text-sm font-bold">
+                {currencySymbol}
+              </span>
             </div>
             <input
               type="number"

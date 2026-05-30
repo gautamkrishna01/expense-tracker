@@ -1,11 +1,13 @@
-import { useState, useEffect, useMemo } from "react";
-import { Wallet, DollarSign, Edit3, Trash2 } from "lucide-react";
+import { useState, useEffect, useMemo, useContext } from "react";
+import { Wallet, Edit3, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import Modal from "../components/Modal";
 import IncomeForm, { type IncomeFormData } from "../components/IncomeForm";
 import FilterBar from "../components/FilterBar";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { incomeAPI } from "../services/api";
+import { UserContext } from "../App";
+import { CURRENCIES } from "../constants";
 
 const SOURCES = ["Salary", "Freelance", "Investments", "Gift", "Other"];
 
@@ -34,6 +36,11 @@ const AllIncome = () => {
   const [incomeEntries, setIncomeEntries] = useState<Income[]>([]);
   const [loading, setLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const userContext = useContext(UserContext);
+  const currencyCode = userContext?.user?.settings?.currency || "USD";
+  const currencySymbol =
+    CURRENCIES.find((c) => c.code === currencyCode)?.symbol || "$";
 
   const fetchIncomes = async () => {
     setLoading(true);
@@ -182,14 +189,14 @@ const AllIncome = () => {
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="p-3 bg-emerald-100 rounded-xl shadow-inner">
-            <DollarSign className="h-6 w-6 text-emerald-600" />
+            <Wallet className="h-6 w-6 text-emerald-600" />
           </div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
               Total Income
             </p>
             <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-              Rs. {totalIncome.toFixed(2)}
+              {currencySymbol} {totalIncome.toFixed(2)}
             </h3>
           </div>
         </div>
@@ -263,7 +270,7 @@ const AllIncome = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-extrabold text-emerald-600">
-                        +Rs. {income.amount.toFixed(2)}
+                        +{currencySymbol} {income.amount.toFixed(2)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
