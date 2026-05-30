@@ -13,6 +13,7 @@ import Modal from "../components/Modal";
 import BudgetForm, { type BudgetFormData } from "../components/BudgetForm";
 import FilterBar from "../components/FilterBar";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import Pagination from "../components/Pagination";
 import { budgetAPI } from "../services/api";
 import { UserContext } from "../App";
 import { CURRENCIES } from "../constants";
@@ -54,6 +55,12 @@ const AllBudgets = () => {
   const [loading, setLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [grandTotal, setGrandTotal] = useState(0);
+  const ITEMS_PER_PAGE = 6;
+
   const userContext = useContext(UserContext);
   const currencyCode = userContext?.user?.settings?.currency || "USD";
   const currencySymbol =
@@ -62,8 +69,18 @@ const AllBudgets = () => {
   const fetchBudgets = async () => {
     setLoading(true);
     try {
-      const response = await budgetAPI.getAll();
-      setBudgets(response.data);
+      const response = await budgetAPI.getAll({
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        search: searchTerm,
+        category: selectedCategory,
+        month: selectedMonth,
+        sortBy,
+      });
+      setBudgets(response.data.data);
+      setGrandTotal(response.data.totalAmount);
+      setTotalPages(response.data.pagination.pages);
+      setTotalResults(response.data.pagination.total);
     } catch (error) {
       toast.error("Failed to fetch budgets");
       console.error("Error fetching budgets:", error);
@@ -74,26 +91,15 @@ const AllBudgets = () => {
 
   useEffect(() => {
     fetchBudgets();
-  }, []);
+  }, [currentPage, searchTerm, selectedCategory, selectedMonth, sortBy]);
 
-  const filteredBudgets = useMemo(() => {
-    const result = budgets.filter((budget) => {
-      const matchesSearch = budget.title
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesCategory =
-        selectedCategory === "All" || budget.category === selectedCategory;
-      const matchesMonth =
-        selectedMonth === "All" || budget.month === selectedMonth;
-      return matchesSearch && matchesCategory && matchesMonth;
-    });
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedMonth]);
 
-    return result.sort((a, b) => {
-      if (sortBy === "amount-high") return b.amount - a.amount;
-      if (sortBy === "amount-low") return a.amount - b.amount;
-      return 0;
-    });
-  }, [budgets, searchTerm, selectedCategory, selectedMonth, sortBy]);
+  const startItem =
+    totalResults === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalResults);
 
   const handleAddOrEdit = async (data: BudgetFormData) => {
     try {
@@ -174,6 +180,23 @@ const AllBudgets = () => {
         </button>
       </div>
 
+      {/* Total Budgeted Card */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="p-3 bg-indigo-100 rounded-xl shadow-inner">
+            <Target className="h-6 w-6 text-indigo-600" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+              Total Budgeted
+            </p>
+            <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+              {currencySymbol} {grandTotal.toFixed(2)}
+            </h3>
+          </div>
+        </div>
+      </div>
+
       <FilterBar
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -191,13 +214,25 @@ const AllBudgets = () => {
         placeholder="Search budgets..."
       />
 
+      <div className="flex items-center px-1">
+        <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+          Showing{" "}
+          <span className="text-gray-900 dark:text-white">
+            {startItem}-{endItem}
+          </span>{" "}
+          of{" "}
+          <span className="text-gray-900 dark:text-white">{totalResults}</span>{" "}
+          Results
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {loading ? (
           <div className="col-span-full bg-white border border-gray-200 rounded-2xl p-12 text-center">
             <div className="text-gray-500">Loading budgets...</div>
           </div>
         ) : (
-          filteredBudgets.map((budget) => {
+          budgets.map((budget) => {
             const remaining = budget.amount - budget.spent;
             const percentSpent = Math.min(
               (budget.spent / budget.amount) * 100,
@@ -299,8 +334,16 @@ const AllBudgets = () => {
             );
           })
         )}
+      </div>
 
-        {!loading && filteredBudgets.length === 0 && (
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+
+        {!loading && budgets.length === 0 && (
           <div className="col-span-full bg-white border border-dashed border-gray-200 rounded-2xl p-12 text-center">
             <Target className="h-12 w-12 text-gray-200 mx-auto mb-4" />
             <p className="text-gray-500 font-medium">

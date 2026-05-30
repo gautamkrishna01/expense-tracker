@@ -67,7 +67,7 @@ export const incomeAPI = {
 
 // Saving API
 export const savingAPI = {
-  getAll: () => api.get("/savings"),
+  getAll: (params: any) => api.get("/savings", { params }),
   getById: (id: string) => api.get(`/savings/${id}`),
   create: (data: any) => api.post("/savings", data),
   update: (id: string, data: any) => api.put(`/savings/${id}`, data),
@@ -76,7 +76,7 @@ export const savingAPI = {
 
 // Budget API
 export const budgetAPI = {
-  getAll: () => api.get("/budgets"),
+  getAll: (params: any) => api.get("/budgets", { params }),
   getById: (id: string) => api.get(`/budgets/${id}`),
   create: (data: any) => api.post("/budgets", data),
   update: (id: string, data: any) => api.put(`/budgets/${id}`, data),

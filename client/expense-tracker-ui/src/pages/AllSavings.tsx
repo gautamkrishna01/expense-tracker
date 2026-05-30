@@ -5,6 +5,7 @@ import Modal from "../components/Modal";
 import SavingForm, { type SavingFormData } from "../components/SavingForm";
 import FilterBar from "../components/FilterBar";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import Pagination from "../components/Pagination";
 import { savingAPI } from "../services/api";
 import { UserContext } from "../App";
 import { CURRENCIES } from "../constants";
@@ -54,6 +55,13 @@ const AllSavings = () => {
   const [endDate, setEndDate] = useState("");
   const [selectedCat, setSelectedCat] = useState("All");
   const [selectedMonth, setSelectedMonth] = useState("All");
+  const [sortBy, setSortBy] = useState("newest");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [grandTotal, setGrandTotal] = useState(0);
+  const ITEMS_PER_PAGE = 8;
 
   const userContext = useContext(UserContext);
   const currencySymbol =
@@ -63,8 +71,20 @@ const AllSavings = () => {
   const fetchSavings = async () => {
     setLoading(true);
     try {
-      const res = await savingAPI.getAll();
-      setSavings(res.data);
+      const res = await savingAPI.getAll({
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        search: searchTerm,
+        category: selectedCat,
+        month: selectedMonth,
+        startDate,
+        endDate,
+        sortBy,
+      });
+      setSavings(res.data.data);
+      setGrandTotal(res.data.totalAmount);
+      setTotalPages(res.data.pagination.pages);
+      setTotalResults(res.data.pagination.total);
     } catch (err) {
       toast.error("Failed to load savings");
     } finally {
@@ -74,24 +94,23 @@ const AllSavings = () => {
 
   useEffect(() => {
     fetchSavings();
-  }, []);
+  }, [
+    currentPage,
+    searchTerm,
+    selectedCat,
+    selectedMonth,
+    startDate,
+    endDate,
+    sortBy,
+  ]);
 
-  const filtered = useMemo(() => {
-    return savings
-      .filter(
-        (s) =>
-          s.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-          (selectedCat === "All" || s.category === selectedCat) &&
-          (!startDate || s.date >= startDate) &&
-          (!endDate || s.date <= endDate)
-      )
-      .sort((a, b) => b.date.localeCompare(a.date));
-  }, [savings, searchTerm, selectedCat, startDate, endDate]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCat, selectedMonth, startDate, endDate]);
 
-  const total = useMemo(
-    () => filtered.reduce((sum, s) => sum + s.amount, 0),
-    [filtered]
-  );
+  const startItem =
+    totalResults === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalResults);
 
   const handleAddEdit = async (data: SavingFormData) => {
     try {
@@ -142,7 +161,7 @@ const AllSavings = () => {
           Total Savings
         </p>
         <h3 className="text-2xl font-black text-gray-900 dark:text-white">
-          {currencySymbol} {total.toFixed(2)}
+          {currencySymbol} {grandTotal.toFixed(2)}
         </h3>
       </div>
 
@@ -158,9 +177,21 @@ const AllSavings = () => {
         categories={CATEGORIES}
         selectedMonth={selectedMonth}
         onMonthChange={setSelectedMonth}
-        sortBy="newest"
-        onSortChange={() => {}}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
       />
+
+      <div className="flex items-center px-1">
+        <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+          Showing{" "}
+          <span className="text-gray-900 dark:text-white">
+            {startItem}-{endItem}
+          </span>{" "}
+          of{" "}
+          <span className="text-gray-900 dark:text-white">{totalResults}</span>{" "}
+          Results
+        </p>
+      </div>
 
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -191,7 +222,7 @@ const AllSavings = () => {
                 </td>
               </tr>
             ) : (
-              filtered.map((saving) => (
+              savings.map((saving) => (
                 <tr
                   key={saving._id}
                   className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
@@ -237,6 +268,12 @@ const AllSavings = () => {
             )}
           </tbody>
         </table>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       <Modal
