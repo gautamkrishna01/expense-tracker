@@ -30,6 +30,7 @@ interface DashboardSummary {
     month: string;
     income: number;
     expense: number;
+    savings: number;
   }>;
 }
 
@@ -69,12 +70,12 @@ const Dashboard = () => {
 
   // Get previous month's data for trend calculation
   const getPreviousMonthData = () => {
-    if (!summary) return { income: 0, expense: 0 };
+    if (!summary) return { income: 0, expense: 0, savings: 0 };
     const currentMonthIndex = summary.monthlyData.length - 1;
     const previousMonth =
       currentMonthIndex > 0
         ? summary.monthlyData[currentMonthIndex - 1]
-        : { income: 0, expense: 0 };
+        : { income: 0, expense: 0, savings: 0 };
     return previousMonth;
   };
 
@@ -97,16 +98,18 @@ const Dashboard = () => {
         },
         {
           label: "Total Income",
-          amount: `${currencySymbol} ${summary.totalIncome.toLocaleString(
-            "en-US",
-            {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }
-          )}`,
+          amount: `${currencySymbol} ${(
+            summary.totalIncome - summary.savings
+          ).toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`,
           icon: <ArrowUpCircle className="h-6 w-6 text-white" />,
           color: "bg-emerald-500",
-          trend: calculateTrend(summary.totalIncome, previousMonth.income),
+          trend: calculateTrend(
+            summary.totalIncome - summary.savings,
+            previousMonth.income - previousMonth.savings
+          ),
         },
         {
           label: "Total Expense",

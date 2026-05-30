@@ -5,17 +5,33 @@ import Modal from "../components/Modal";
 import IncomeForm, { type IncomeFormData } from "../components/IncomeForm";
 import FilterBar from "../components/FilterBar";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import Pagination from "../components/Pagination";
 import { transactionAPI } from "../services/api";
 import { UserContext } from "../App";
 import { CURRENCIES } from "../constants";
 
 const SOURCES = ["Salary", "Freelance", "Investments", "Gift", "Other"];
+const NEPALI_MONTHS = [
+  "Baisakh",
+  "Jestha",
+  "Ashadh",
+  "Shrawan",
+  "Bhadra",
+  "Ashwin",
+  "Kartik",
+  "Mangshir",
+  "Poush",
+  "Magh",
+  "Falgun",
+  "Chaitra",
+];
 
 interface Income {
   _id: string;
   title: string;
   amount: number;
-  source: string;
+  category: string;
+  source?: string; // Kept for form compatibility
   date: string;
   note?: string;
   userId?: string;
@@ -30,12 +46,17 @@ const AllIncome = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedSource, setSelectedSource] = useState("All");
-  const [minAmount, setMinAmount] = useState("");
-  const [maxAmount, setMaxAmount] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
   const [incomeEntries, setIncomeEntries] = useState<Income[]>([]);
   const [loading, setLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [grandTotal, setGrandTotal] = useState(0);
+  const ITEMS_PER_PAGE = 8;
 
   const userContext = useContext(UserContext);
   const currencyCode = userContext?.user?.settings?.currency || "USD";
@@ -45,8 +66,21 @@ const AllIncome = () => {
   const fetchIncomes = async () => {
     setLoading(true);
     try {
-      const response = await transactionAPI.getAll("income");
-      setIncomeEntries(response.data);
+      const response = await transactionAPI.getAll({
+        type: "income",
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        search: searchTerm,
+        category: selectedSource,
+        month: selectedMonth,
+        startDate,
+        endDate,
+        sortBy,
+      });
+      setIncomeEntries(response.data.data);
+      setGrandTotal(response.data.totalAmount);
+      setTotalPages(response.data.pagination.pages);
+      setTotalResults(response.data.pagination.total);
     } catch (error) {
       toast.error("Failed to fetch incomes");
       console.error("Error fetching incomes:", error);
@@ -57,52 +91,24 @@ const AllIncome = () => {
 
   useEffect(() => {
     fetchIncomes();
-  }, []);
-
-  const filteredIncome = useMemo(() => {
-    const result = incomeEntries.filter((entry) => {
-      const matchesSearch = entry.title
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesSource =
-        selectedSource === "All" || entry.source === selectedSource;
-      const matchesStartDate = !startDate || entry.date >= startDate;
-      const matchesEndDate = !endDate || entry.date <= endDate;
-      const matchesMinAmount =
-        !minAmount || entry.amount >= parseFloat(minAmount);
-      const matchesMaxAmount =
-        !maxAmount || entry.amount <= parseFloat(maxAmount);
-      return (
-        matchesSearch &&
-        matchesSource &&
-        matchesStartDate &&
-        matchesEndDate &&
-        matchesMinAmount &&
-        matchesMaxAmount
-      );
-    });
-
-    return result.sort((a, b) => {
-      if (sortBy === "newest") return b.date.localeCompare(a.date);
-      if (sortBy === "oldest") return a.date.localeCompare(b.date);
-      if (sortBy === "amount-high") return b.amount - a.amount;
-      if (sortBy === "amount-low") return a.amount - b.amount;
-      return 0;
-    });
   }, [
-    incomeEntries,
+    currentPage,
     searchTerm,
     selectedSource,
+    selectedMonth,
     startDate,
     endDate,
-    minAmount,
-    maxAmount,
     sortBy,
   ]);
 
-  const totalIncome = useMemo(() => {
-    return filteredIncome.reduce((sum, entry) => sum + entry.amount, 0);
-  }, [filteredIncome]);
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedSource, startDate, endDate, selectedMonth]);
+
+  const startItem =
+    totalResults === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalResults);
 
   const handleAddOrEdit = async (data: IncomeFormData) => {
     try {
@@ -139,7 +145,10 @@ const AllIncome = () => {
   };
 
   const openEditModal = (income: Income) => {
-    setEditingIncome(income);
+    setEditingIncome({
+      ...income,
+      source: income.category, // Map back to 'source' so the form can read it
+    });
     setIsModalOpen(true);
   };
 
@@ -203,7 +212,7 @@ const AllIncome = () => {
               Total Income
             </p>
             <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-              {currencySymbol} {totalIncome.toFixed(2)}
+              {currencySymbol} {grandTotal.toFixed(2)}
             </h3>
           </div>
         </div>
@@ -220,14 +229,25 @@ const AllIncome = () => {
         selectedCategory={selectedSource}
         onCategoryChange={setSelectedSource}
         categories={SOURCES}
-        minAmount={minAmount}
-        onMinAmountChange={setMinAmount}
-        maxAmount={maxAmount}
-        onMaxAmountChange={setMaxAmount}
+        selectedMonth={selectedMonth}
+        onMonthChange={setSelectedMonth}
         sortBy={sortBy}
         onSortChange={setSortBy}
         placeholder="Search income..."
       />
+
+      {/* Result Summary */}
+      <div className="flex items-center px-1">
+        <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+          Showing{" "}
+          <span className="text-gray-900 dark:text-white">
+            {startItem}-{endItem}
+          </span>{" "}
+          of{" "}
+          <span className="text-gray-900 dark:text-white">{totalResults}</span>{" "}
+          Results
+        </p>
+      </div>
 
       {/* Income Table */}
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
@@ -265,7 +285,7 @@ const AllIncome = () => {
                   </td>
                 </tr>
               ) : (
-                filteredIncome.map((income) => (
+                incomeEntries.map((income) => (
                   <tr
                     key={income._id}
                     className="hover:bg-gray-50/50 transition-colors"
@@ -282,7 +302,7 @@ const AllIncome = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-full">
-                        {income.source}
+                        {income.category}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
@@ -313,7 +333,14 @@ const AllIncome = () => {
             </tbody>
           </table>
         </div>
-        {!loading && filteredIncome.length === 0 && (
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+
+        {!loading && incomeEntries.length === 0 && (
           <div className="p-12 text-center">
             <Wallet className="h-12 w-12 text-gray-200 mx-auto mb-4" />
             <p className="text-gray-500 font-medium">

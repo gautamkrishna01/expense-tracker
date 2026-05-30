@@ -40,8 +40,7 @@ export const authAPI = {
 
 // Transaction API (Unified)
 export const transactionAPI = {
-  getAll: (type?: "income" | "expense") =>
-    api.get("/transactions", { params: { type } }),
+  getAll: (params: any) => api.get("/transactions", { params }),
   getById: (id: string) => api.get(`/transactions/${id}`),
   create: (data: any) => api.post("/transactions", data),
   update: (id: string, data: any) => api.put(`/transactions/${id}`, data),

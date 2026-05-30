@@ -124,6 +124,13 @@ export const getDashboardSummary = async (req: AuthRequest, res: Response) => {
         );
       });
 
+      const monthSavings = savingsRecords.filter((saving) => {
+        const savingDate = new Date(saving.date);
+        return (
+          savingDate.getMonth() === month && savingDate.getFullYear() === year
+        );
+      });
+
       monthlyData.push({
         month: NEPALI_MONTHS[date.getMonth()],
         income: monthIncomes.reduce((sum, income) => sum + income.amount, 0),
@@ -131,6 +138,7 @@ export const getDashboardSummary = async (req: AuthRequest, res: Response) => {
           (sum, expense) => sum + expense.amount,
           0
         ),
+        savings: monthSavings.reduce((sum, s) => sum + s.amount, 0),
       });
     }
 

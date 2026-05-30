@@ -1,5 +1,11 @@
 import React from "react";
-import { Search, Filter, Calendar, Coins, ArrowUpDown } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Calendar,
+  CalendarDays,
+  ArrowUpDown,
+} from "lucide-react";
 import { NepaliDatePicker } from "nepali-datepicker-reactjs";
 import "nepali-datepicker-reactjs/dist/index.css";
 
@@ -13,10 +19,8 @@ interface FilterBarProps {
   selectedCategory: string;
   onCategoryChange: (value: string) => void;
   categories: string[];
-  minAmount: string;
-  onMinAmountChange: (value: string) => void;
-  maxAmount: string;
-  onMaxAmountChange: (value: string) => void;
+  selectedMonth: string;
+  onMonthChange: (value: string) => void;
   sortBy: string;
   onSortChange: (value: string) => void;
   placeholder?: string;
@@ -32,10 +36,8 @@ const FilterBar: React.FC<FilterBarProps> = ({
   selectedCategory,
   onCategoryChange,
   categories,
-  minAmount,
-  onMinAmountChange,
-  maxAmount,
-  onMaxAmountChange,
+  selectedMonth,
+  onMonthChange,
   sortBy,
   onSortChange,
   placeholder = "Search...",
@@ -99,24 +101,28 @@ const FilterBar: React.FC<FilterBarProps> = ({
         </select>
       </div>
 
-      {/* Amount Range */}
-      <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 transition-colors duration-200">
-        <Coins className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-        <input
-          type="number"
-          placeholder="Min"
-          value={minAmount}
-          onChange={(e) => onMinAmountChange(e.target.value)}
-          className="w-16 bg-transparent text-xs font-semibold text-gray-600 dark:text-gray-300 focus:outline-none placeholder:text-gray-300 dark:placeholder:text-gray-500"
-        />
-        <span className="text-gray-300">-</span>
-        <input
-          type="number"
-          placeholder="Max"
-          value={maxAmount}
-          onChange={(e) => onMaxAmountChange(e.target.value)}
-          className="w-16 bg-transparent text-xs font-semibold text-gray-600 dark:text-gray-300 focus:outline-none placeholder:text-gray-300 dark:placeholder:text-gray-500"
-        />
+      {/* Month Filter */}
+      <div className="relative">
+        <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
+        <select
+          value={selectedMonth}
+          onChange={(e) => onMonthChange(e.target.value)}
+          className="pl-10 pr-8 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-900 transition-all appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          <option value="All">All Months</option>
+          <option value="Baisakh">Baisakh</option>
+          <option value="Jestha">Jestha</option>
+          <option value="Ashadh">Ashadh</option>
+          <option value="Shrawan">Shrawan</option>
+          <option value="Bhadra">Bhadra</option>
+          <option value="Ashwin">Ashwin</option>
+          <option value="Kartik">Kartik</option>
+          <option value="Mangshir">Mangshir</option>
+          <option value="Poush">Poush</option>
+          <option value="Magh">Magh</option>
+          <option value="Falgun">Falgun</option>
+          <option value="Chaitra">Chaitra</option>
+        </select>
       </div>
 
       {/* Sort */}

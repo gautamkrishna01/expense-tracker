@@ -5,6 +5,7 @@ import Modal from "../components/Modal";
 import ExpenseForm, { type ExpenseFormData } from "../components/ExpenseForm";
 import FilterBar from "../components/FilterBar";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import Pagination from "../components/Pagination";
 import { transactionAPI } from "../services/api";
 import { UserContext } from "../App";
 import { CURRENCIES } from "../constants";
@@ -17,6 +18,20 @@ const CATEGORIES = [
   "Entertainment",
   "Health",
   "Other",
+];
+const NEPALI_MONTHS = [
+  "Baisakh",
+  "Jestha",
+  "Ashadh",
+  "Shrawan",
+  "Bhadra",
+  "Ashwin",
+  "Kartik",
+  "Mangshir",
+  "Poush",
+  "Magh",
+  "Falgun",
+  "Chaitra",
 ];
 
 interface Expense {
@@ -40,12 +55,17 @@ const AllExpenses = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [minAmount, setMinAmount] = useState("");
-  const [maxAmount, setMaxAmount] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [grandTotal, setGrandTotal] = useState(0);
+  const ITEMS_PER_PAGE = 8;
 
   const userContext = useContext(UserContext);
   const currencyCode = userContext?.user?.settings?.currency || "USD";
@@ -55,8 +75,21 @@ const AllExpenses = () => {
   const fetchExpenses = async () => {
     setLoading(true);
     try {
-      const response = await transactionAPI.getAll("expense");
-      setExpenses(response.data);
+      const response = await transactionAPI.getAll({
+        type: "expense",
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        search: searchTerm,
+        category: selectedCategory,
+        month: selectedMonth,
+        startDate,
+        endDate,
+        sortBy,
+      });
+      setExpenses(response.data.data);
+      setGrandTotal(response.data.totalAmount);
+      setTotalPages(response.data.pagination.pages);
+      setTotalResults(response.data.pagination.total);
     } catch (error) {
       toast.error("Failed to fetch expenses");
       console.error("Error fetching expenses:", error);
@@ -67,52 +100,28 @@ const AllExpenses = () => {
 
   useEffect(() => {
     fetchExpenses();
-  }, []);
-
-  const filteredExpenses = useMemo(() => {
-    let result = expenses.filter((expense) => {
-      const matchesSearch = expense.title
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesCategory =
-        selectedCategory === "All" || expense.category === selectedCategory;
-      const matchesStartDate = !startDate || expense.date >= startDate;
-      const matchesEndDate = !endDate || expense.date <= endDate;
-      const matchesMinAmount =
-        !minAmount || expense.amount >= parseFloat(minAmount);
-      const matchesMaxAmount =
-        !maxAmount || expense.amount <= parseFloat(maxAmount);
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesStartDate &&
-        matchesEndDate &&
-        matchesMinAmount &&
-        matchesMaxAmount
-      );
-    });
-
-    return result.sort((a, b) => {
-      if (sortBy === "newest") return b.date.localeCompare(a.date);
-      if (sortBy === "oldest") return a.date.localeCompare(b.date);
-      if (sortBy === "amount-high") return b.amount - a.amount;
-      if (sortBy === "amount-low") return a.amount - b.amount;
-      return 0;
-    });
   }, [
-    expenses,
+    currentPage,
     searchTerm,
     selectedCategory,
+    selectedMonth,
     startDate,
     endDate,
-    minAmount,
-    maxAmount,
     sortBy,
   ]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, startDate, endDate, selectedMonth, sortBy]);
 
   const totalExpenses = useMemo(() => {
     return expenses.reduce((sum, expense) => sum + expense.amount, 0);
   }, [expenses]);
+
+  const startItem =
+    totalResults === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalResults);
 
   const handleAddOrEdit = async (data: ExpenseFormData) => {
     try {
@@ -211,7 +220,7 @@ const AllExpenses = () => {
               Total Expense
             </p>
             <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-              {currencySymbol} {totalExpenses.toFixed(2)}
+              {currencySymbol} {grandTotal.toFixed(2)}
             </h3>
           </div>
         </div>
@@ -228,14 +237,25 @@ const AllExpenses = () => {
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
         categories={CATEGORIES}
-        minAmount={minAmount}
-        onMinAmountChange={setMinAmount}
-        maxAmount={maxAmount}
-        onMaxAmountChange={setMaxAmount}
+        selectedMonth={selectedMonth}
+        onMonthChange={setSelectedMonth}
         sortBy={sortBy}
         onSortChange={setSortBy}
         placeholder="Search expenses..."
       />
+
+      {/* Result Summary */}
+      <div className="flex items-center px-1">
+        <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+          Showing{" "}
+          <span className="text-gray-900 dark:text-white">
+            {startItem}-{endItem}
+          </span>{" "}
+          of{" "}
+          <span className="text-gray-900 dark:text-white">{totalResults}</span>{" "}
+          Results
+        </p>
+      </div>
 
       {/* Expenses Table */}
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
@@ -274,7 +294,7 @@ const AllExpenses = () => {
                   </td>
                 </tr>
               ) : (
-                filteredExpenses.map((expense) => (
+                expenses.map((expense) => (
                   <tr
                     key={expense._id}
                     className="hover:bg-gray-50/50 transition-colors"
@@ -328,7 +348,14 @@ const AllExpenses = () => {
             </tbody>
           </table>
         </div>
-        {!loading && filteredExpenses.length === 0 && (
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+
+        {!loading && expenses.length === 0 && (
           <div className="p-12 text-center">
             <Receipt className="h-12 w-12 text-gray-200 mx-auto mb-4" />
             <p className="text-gray-500 font-medium">

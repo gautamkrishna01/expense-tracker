@@ -48,8 +48,7 @@ const AllBudgets = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [minAmount, setMinAmount] = useState("");
-  const [maxAmount, setMaxAmount] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(false);
@@ -84,13 +83,9 @@ const AllBudgets = () => {
         .includes(searchTerm.toLowerCase());
       const matchesCategory =
         selectedCategory === "All" || budget.category === selectedCategory;
-      const matchesMinAmount =
-        !minAmount || budget.amount >= parseFloat(minAmount);
-      const matchesMaxAmount =
-        !maxAmount || budget.amount <= parseFloat(maxAmount);
-      return (
-        matchesSearch && matchesCategory && matchesMinAmount && matchesMaxAmount
-      );
+      const matchesMonth =
+        selectedMonth === "All" || budget.month === selectedMonth;
+      return matchesSearch && matchesCategory && matchesMonth;
     });
 
     return result.sort((a, b) => {
@@ -98,7 +93,7 @@ const AllBudgets = () => {
       if (sortBy === "amount-low") return a.amount - b.amount;
       return 0;
     });
-  }, [budgets, searchTerm, selectedCategory, minAmount, maxAmount, sortBy]);
+  }, [budgets, searchTerm, selectedCategory, selectedMonth, sortBy]);
 
   const handleAddOrEdit = async (data: BudgetFormData) => {
     try {
@@ -189,10 +184,8 @@ const AllBudgets = () => {
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
         categories={CATEGORIES}
-        minAmount={minAmount}
-        onMinAmountChange={setMinAmount}
-        maxAmount={maxAmount}
-        onMaxAmountChange={setMaxAmount}
+        selectedMonth={selectedMonth}
+        onMonthChange={setSelectedMonth}
         sortBy={sortBy}
         onSortChange={setSortBy}
         placeholder="Search budgets..."

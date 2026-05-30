@@ -17,6 +17,20 @@ const CATEGORIES = [
   "Education",
   "Other",
 ];
+const NEPALI_MONTHS = [
+  "Baisakh",
+  "Jestha",
+  "Ashadh",
+  "Shrawan",
+  "Bhadra",
+  "Ashwin",
+  "Kartik",
+  "Mangshir",
+  "Poush",
+  "Magh",
+  "Falgun",
+  "Chaitra",
+];
 
 interface Saving {
   _id: string;
@@ -39,6 +53,7 @@ const AllSavings = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedCat, setSelectedCat] = useState("All");
+  const [selectedMonth, setSelectedMonth] = useState("All");
 
   const userContext = useContext(UserContext);
   const currencySymbol =
@@ -141,10 +156,8 @@ const AllSavings = () => {
         selectedCategory={selectedCat}
         onCategoryChange={setSelectedCat}
         categories={CATEGORIES}
-        minAmount=""
-        onMinAmountChange={() => {}}
-        maxAmount=""
-        onMaxAmountChange={() => {}}
+        selectedMonth={selectedMonth}
+        onMonthChange={setSelectedMonth}
         sortBy="newest"
         onSortChange={() => {}}
       />
