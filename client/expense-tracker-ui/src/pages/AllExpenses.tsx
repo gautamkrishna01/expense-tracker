@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
-import { Receipt, Edit3, Trash2, CreditCard } from "lucide-react";
+import { Receipt, Edit3, Trash2, CreditCard, DollarSign } from "lucide-react";
 import { toast } from "react-toastify";
 import Modal from "../components/Modal";
 import ExpenseForm, { type ExpenseFormData } from "../components/ExpenseForm";
 import FilterBar from "../components/FilterBar";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { expenseAPI } from "../services/api";
 
 const CATEGORIES = [
@@ -28,7 +29,11 @@ interface Expense {
 
 const AllExpenses = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [expenseToDeleteId, setExpenseToDeleteId] = useState<string | null>(
+    null
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -38,6 +43,7 @@ const AllExpenses = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchExpenses = async () => {
     setLoading(true);
@@ -101,6 +107,10 @@ const AllExpenses = () => {
     sortBy,
   ]);
 
+  const totalExpenses = useMemo(() => {
+    return expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  }, [expenses]);
+
   const handleAddOrEdit = async (data: ExpenseFormData) => {
     try {
       if (editingExpense) {
@@ -131,14 +141,25 @@ const AllExpenses = () => {
     setIsModalOpen(true);
   };
 
-  const deleteExpense = async (id: string) => {
+  const handleDeleteClick = (id: string) => {
+    setExpenseToDeleteId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!expenseToDeleteId) return;
+    setIsDeleting(true);
     try {
-      await expenseAPI.delete(id);
-      setExpenses(expenses.filter((e) => e._id !== id));
+      await expenseAPI.delete(expenseToDeleteId);
+      setExpenses(expenses.filter((e) => e._id !== expenseToDeleteId));
       toast.success("Expense deleted successfully");
     } catch (error) {
       toast.error("Failed to delete expense");
       console.error("Error deleting expense:", error);
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+      setExpenseToDeleteId(null);
     }
   };
 
@@ -165,6 +186,23 @@ const AllExpenses = () => {
         >
           Add New Expense
         </button>
+      </div>
+
+      {/* Total Expense Card */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="p-3 bg-rose-100 rounded-xl shadow-inner">
+            <DollarSign className="h-6 w-6 text-rose-600" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+              Total Expense
+            </p>
+            <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+              Rs. {totalExpenses.toFixed(2)}
+            </h3>
+          </div>
+        </div>
       </div>
 
       {/* Filters/Search Bar */}
@@ -241,7 +279,7 @@ const AllExpenses = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-extrabold text-gray-900">
-                        ${expense.amount.toFixed(2)}
+                        Rs. {expense.amount.toFixed(2)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
@@ -265,7 +303,7 @@ const AllExpenses = () => {
                           <Edit3 className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => deleteExpense(expense._id)}
+                          onClick={() => handleDeleteClick(expense._id)}
                           className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -302,6 +340,15 @@ const AllExpenses = () => {
           buttonText={editingExpense ? "Update Expense" : "Add Expense"}
         />
       </Modal>
+
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        title="Delete Expense"
+        message="Are you sure you want to delete this expense? This action cannot be undone."
+      />
     </div>
   );
 };

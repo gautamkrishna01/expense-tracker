@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import Modal from "../components/Modal";
 import BudgetForm, { type BudgetFormData } from "../components/BudgetForm";
 import FilterBar from "../components/FilterBar";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { budgetAPI } from "../services/api";
 
 const CATEGORIES = [
@@ -39,6 +40,8 @@ interface Budget {
 const AllBudgets = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [budgetToDeleteId, setBudgetToDeleteId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -48,6 +51,7 @@ const AllBudgets = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchBudgets = async () => {
     setLoading(true);
@@ -117,14 +121,25 @@ const AllBudgets = () => {
     setIsModalOpen(true);
   };
 
-  const deleteBudget = async (id: string) => {
+  const handleDeleteClick = (id: string) => {
+    setBudgetToDeleteId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!budgetToDeleteId) return;
+    setIsDeleting(true);
     try {
-      await budgetAPI.delete(id);
-      setBudgets(budgets.filter((b) => b._id !== id));
+      await budgetAPI.delete(budgetToDeleteId);
+      setBudgets(budgets.filter((b) => b._id !== budgetToDeleteId));
       toast.success("Budget deleted successfully");
     } catch (error) {
       toast.error("Failed to delete budget");
       console.error("Error deleting budget:", error);
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+      setBudgetToDeleteId(null);
     }
   };
 
@@ -213,7 +228,7 @@ const AllBudgets = () => {
                       <Edit3 className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => deleteBudget(budget._id)}
+                      onClick={() => handleDeleteClick(budget._id)}
                       className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -232,7 +247,7 @@ const AllBudgets = () => {
                           isOverBudget ? "text-rose-600" : "text-gray-900"
                         }`}
                       >
-                        ${budget.spent.toFixed(2)}
+                        Rs. {budget.spent.toFixed(2)}
                       </p>
                     </div>
                     <div className="text-right">
@@ -240,7 +255,7 @@ const AllBudgets = () => {
                         Remaining
                       </p>
                       <p className="text-xl font-black text-indigo-600">
-                        ${remaining.toFixed(2)}
+                        Rs. {remaining.toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -256,7 +271,7 @@ const AllBudgets = () => {
                       />
                     </div>
                     <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase">
-                      <span>Limit: ${budget.amount.toFixed(2)}</span>
+                      <span>Limit: Rs. {budget.amount.toFixed(2)}</span>
                       <span>{percentSpent.toFixed(0)}% Used</span>
                     </div>
                   </div>
@@ -264,7 +279,7 @@ const AllBudgets = () => {
                   {isOverBudget && (
                     <div className="flex items-center p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-xs font-bold">
                       <AlertCircle className="h-4 w-4 mr-2 shrink-0" />
-                      Budget limit exceeded by $
+                      Budget limit exceeded by Rs.{" "}
                       {(budget.spent - budget.amount).toFixed(2)}
                     </div>
                   )}
@@ -304,6 +319,15 @@ const AllBudgets = () => {
           buttonText={editingBudget ? "Update Budget" : "Create Budget"}
         />
       </Modal>
+
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        title="Delete Budget"
+        message="Are you sure you want to delete this budget? You will lose track of your progress for this category."
+      />
     </div>
   );
 };

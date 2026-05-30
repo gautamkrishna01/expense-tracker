@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import Modal from "../components/Modal";
 import IncomeForm, { type IncomeFormData } from "../components/IncomeForm";
 import FilterBar from "../components/FilterBar";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { incomeAPI } from "../services/api";
 
 const SOURCES = ["Salary", "Freelance", "Investments", "Gift", "Other"];
@@ -21,6 +22,8 @@ interface Income {
 const AllIncome = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [incomeToDeleteId, setIncomeToDeleteId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -30,6 +33,7 @@ const AllIncome = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [incomeEntries, setIncomeEntries] = useState<Income[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchIncomes = async () => {
     setLoading(true);
@@ -127,14 +131,25 @@ const AllIncome = () => {
     setIsModalOpen(true);
   };
 
-  const deleteIncome = async (id: string) => {
+  const handleDeleteClick = (id: string) => {
+    setIncomeToDeleteId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!incomeToDeleteId) return;
+    setIsDeleting(true);
     try {
-      await incomeAPI.delete(id);
-      setIncomeEntries(incomeEntries.filter((e) => e._id !== id));
+      await incomeAPI.delete(incomeToDeleteId);
+      setIncomeEntries(incomeEntries.filter((e) => e._id !== incomeToDeleteId));
       toast.success("Income deleted successfully");
     } catch (error) {
       toast.error("Failed to delete income");
       console.error("Error deleting income:", error);
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+      setIncomeToDeleteId(null);
     }
   };
 
@@ -174,7 +189,7 @@ const AllIncome = () => {
               Total Income
             </p>
             <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-              ${totalIncome.toFixed(2)}
+              Rs. {totalIncome.toFixed(2)}
             </h3>
           </div>
         </div>
@@ -248,7 +263,7 @@ const AllIncome = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-extrabold text-emerald-600">
-                        +${income.amount.toFixed(2)}
+                        +Rs. {income.amount.toFixed(2)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -271,7 +286,7 @@ const AllIncome = () => {
                           <Edit3 className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => deleteIncome(income._id)}
+                          onClick={() => handleDeleteClick(income._id)}
                           className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -308,6 +323,15 @@ const AllIncome = () => {
           buttonText={editingIncome ? "Update Income" : "Add Income"}
         />
       </Modal>
+
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        title="Delete Income"
+        message="Are you sure you want to delete this income entry? This action cannot be undone."
+      />
     </div>
   );
 };

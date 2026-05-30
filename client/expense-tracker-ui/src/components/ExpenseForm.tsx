@@ -84,7 +84,7 @@ const ExpenseForm = ({
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-500 sm:text-sm">$</span>
+              <span className="text-gray-500 sm:text-xs font-bold">Rs.</span>
             </div>
             <input
               type="number"
@@ -93,7 +93,7 @@ const ExpenseForm = ({
                 required: "Amount is required",
                 min: { value: 0.01, message: "Amount must be greater than 0" },
               })}
-              className={`block w-full pl-7 pr-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
+              className={`block w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
                 errors.amount ? "border-red-500 ring-2 ring-red-500/10" : ""
               }`}
               placeholder="0.00"

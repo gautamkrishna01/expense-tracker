@@ -47,4 +47,9 @@ export const budgetAPI = {
   delete: (id: string) => api.delete(`/budgets/${id}`),
 };
 
+// Dashboard API
+export const dashboardAPI = {
+  getSummary: () => api.get("/dashboard/summary"),
+};
+
 export default api;

@@ -52,13 +52,13 @@ const Reports = () => {
     },
     {
       label: "Avg. Expense",
-      value: "$3,450",
+      value: "Rs. 3,450",
       sub: "Based on last 6 months",
       icon: <TrendingDown className="h-5 w-5 text-rose-500" />,
     },
     {
       label: "Best Saving",
-      value: "$2,300",
+      value: "Rs. 2,300",
       sub: "Achieved in April",
       icon: <TrendingUp className="h-5 w-5 text-emerald-500" />,
     },
@@ -219,7 +219,7 @@ const Reports = () => {
                     </span>
                   </div>
                   <span className="text-sm font-extrabold text-gray-900">
-                    ${item.value}
+                    Rs. {item.value}
                   </span>
                 </div>
               ))}
@@ -272,14 +272,16 @@ const Reports = () => {
               <p className="text-[10px] font-bold text-gray-400 uppercase">
                 Opening Balance
               </p>
-              <p className="text-sm font-extrabold text-gray-900">$12,450</p>
+              <p className="text-sm font-extrabold text-gray-900">Rs. 12,450</p>
             </div>
             <ChevronRight className="text-gray-300 h-4 w-4" />
             <div className="text-center">
               <p className="text-[10px] font-bold text-gray-400 uppercase">
                 Closing Balance
               </p>
-              <p className="text-sm font-extrabold text-indigo-600">$15,820</p>
+              <p className="text-sm font-extrabold text-indigo-600">
+                Rs. 15,820
+              </p>
             </div>
           </div>
         </div>
@@ -295,7 +297,7 @@ const Reports = () => {
               Your spending in <strong>"Food & Drinks"</strong> increased by 15%
               this month. Consider adjusting your{" "}
               <strong>Monthly Grocery Budget</strong> to stay on track with your
-              $20,000 yearly savings goal.
+              Rs. 20,000 yearly savings goal.
             </p>
           </div>
           <button className="whitespace-nowrap px-6 py-3 bg-white text-indigo-900 font-bold rounded-xl hover:bg-indigo-50 transition-all">
