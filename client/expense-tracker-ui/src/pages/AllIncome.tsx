@@ -5,7 +5,7 @@ import Modal from "../components/Modal";
 import IncomeForm, { type IncomeFormData } from "../components/IncomeForm";
 import FilterBar from "../components/FilterBar";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
-import { incomeAPI } from "../services/api";
+import { transactionAPI } from "../services/api";
 import { UserContext } from "../App";
 import { CURRENCIES } from "../constants";
 
@@ -45,7 +45,7 @@ const AllIncome = () => {
   const fetchIncomes = async () => {
     setLoading(true);
     try {
-      const response = await incomeAPI.getAll();
+      const response = await transactionAPI.getAll("income");
       setIncomeEntries(response.data);
     } catch (error) {
       toast.error("Failed to fetch incomes");
@@ -107,7 +107,11 @@ const AllIncome = () => {
   const handleAddOrEdit = async (data: IncomeFormData) => {
     try {
       if (editingIncome) {
-        const response = await incomeAPI.update(editingIncome._id, data);
+        const response = await transactionAPI.update(editingIncome._id, {
+          ...data,
+          type: "income",
+          category: data.source, // Map source to category for Transaction model
+        });
         setIncomeEntries(
           incomeEntries.map((e) =>
             e._id === editingIncome._id ? response.data : e
@@ -115,16 +119,21 @@ const AllIncome = () => {
         );
         toast.success("Income updated successfully");
       } else {
-        const response = await incomeAPI.create(data);
+        const response = await transactionAPI.create({
+          ...data,
+          type: "income",
+          category: data.source, // Map source to category for Transaction model
+        });
         setIncomeEntries([...incomeEntries, response.data]);
         toast.success("Income added successfully");
       }
       setIsModalOpen(false);
       setEditingIncome(null);
-    } catch (error) {
-      toast.error(
-        editingIncome ? "Failed to update income" : "Failed to add income"
-      );
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        (editingIncome ? "Failed to update income" : "Failed to add income");
+      toast.error(errorMessage);
       console.error("Error saving income:", error);
     }
   };
@@ -143,11 +152,13 @@ const AllIncome = () => {
     if (!incomeToDeleteId) return;
     setIsDeleting(true);
     try {
-      await incomeAPI.delete(incomeToDeleteId);
+      await transactionAPI.delete(incomeToDeleteId);
       setIncomeEntries(incomeEntries.filter((e) => e._id !== incomeToDeleteId));
       toast.success("Income deleted successfully");
-    } catch (error) {
-      toast.error("Failed to delete income");
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to delete income";
+      toast.error(errorMessage);
       console.error("Error deleting income:", error);
     } finally {
       setIsDeleting(false);

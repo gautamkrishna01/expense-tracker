@@ -1,15 +1,28 @@
 import * as React from "react";
 import { PlusCircle, ArrowLeft, Wallet } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import IncomeForm, { type IncomeFormData } from "../components/IncomeForm";
+import { transactionAPI } from "../services/api";
 
 const AddIncome = () => {
   const navigate = useNavigate();
 
-  const handleAddIncome = (data: IncomeFormData) => {
-    console.log("Adding new income:", data);
-    // In a real app, you would send this to an API
-    navigate("/income/all");
+  const handleAddIncome = async (data: IncomeFormData) => {
+    try {
+      await transactionAPI.create({
+        ...data,
+        type: "income",
+        category: data.source, // Map source to category for Transaction model
+      });
+      toast.success("Income added successfully");
+      navigate("/income/all");
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to add income";
+      toast.error(errorMessage);
+      console.error("Error adding income:", error);
+    }
   };
 
   return (

@@ -5,7 +5,7 @@ import Modal from "../components/Modal";
 import ExpenseForm, { type ExpenseFormData } from "../components/ExpenseForm";
 import FilterBar from "../components/FilterBar";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
-import { expenseAPI } from "../services/api";
+import { transactionAPI } from "../services/api";
 import { UserContext } from "../App";
 import { CURRENCIES } from "../constants";
 
@@ -55,7 +55,7 @@ const AllExpenses = () => {
   const fetchExpenses = async () => {
     setLoading(true);
     try {
-      const response = await expenseAPI.getAll();
+      const response = await transactionAPI.getAll("expense");
       setExpenses(response.data);
     } catch (error) {
       toast.error("Failed to fetch expenses");
@@ -117,7 +117,10 @@ const AllExpenses = () => {
   const handleAddOrEdit = async (data: ExpenseFormData) => {
     try {
       if (editingExpense) {
-        const response = await expenseAPI.update(editingExpense._id, data);
+        const response = await transactionAPI.update(editingExpense._id, {
+          ...data,
+          type: "expense",
+        });
         setExpenses(
           expenses.map((e) =>
             e._id === editingExpense._id ? response.data : e
@@ -125,16 +128,20 @@ const AllExpenses = () => {
         );
         toast.success("Expense updated successfully");
       } else {
-        const response = await expenseAPI.create(data);
+        const response = await transactionAPI.create({
+          ...data,
+          type: "expense",
+        });
         setExpenses([...expenses, response.data]);
         toast.success("Expense added successfully");
       }
       setIsModalOpen(false);
       setEditingExpense(null);
-    } catch (error) {
-      toast.error(
-        editingExpense ? "Failed to update expense" : "Failed to add expense"
-      );
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        (editingExpense ? "Failed to update expense" : "Failed to add expense");
+      toast.error(errorMessage);
       console.error("Error saving expense:", error);
     }
   };
@@ -153,11 +160,13 @@ const AllExpenses = () => {
     if (!expenseToDeleteId) return;
     setIsDeleting(true);
     try {
-      await expenseAPI.delete(expenseToDeleteId);
+      await transactionAPI.delete(expenseToDeleteId);
       setExpenses(expenses.filter((e) => e._id !== expenseToDeleteId));
       toast.success("Expense deleted successfully");
-    } catch (error) {
-      toast.error("Failed to delete expense");
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to delete expense";
+      toast.error(errorMessage);
       console.error("Error deleting expense:", error);
     } finally {
       setIsDeleting(false);

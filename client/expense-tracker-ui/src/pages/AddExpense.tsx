@@ -1,15 +1,27 @@
 import * as React from "react";
 import { PlusCircle, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import ExpenseForm, { type ExpenseFormData } from "../components/ExpenseForm";
+import { transactionAPI } from "../services/api";
 
 const AddExpense = () => {
   const navigate = useNavigate();
 
-  const handleAddExpense = (data: ExpenseFormData) => {
-    console.log("Adding new expense:", data);
-    // In a real app, you would send this to an API
-    navigate("/expenses/all");
+  const handleAddExpense = async (data: ExpenseFormData) => {
+    try {
+      await transactionAPI.create({
+        ...data,
+        type: "expense",
+      });
+      toast.success("Expense added successfully");
+      navigate("/expenses/all");
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to add expense";
+      toast.error(errorMessage);
+      console.error("Error adding expense:", error);
+    }
   };
 
   return (

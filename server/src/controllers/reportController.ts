@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import Expense from "../models/Expense";
-import Income from "../models/Income";
+import Transaction from "../models/Transaction";
 import Budget from "../models/Budget";
 
 interface AuthRequest extends Request {
@@ -57,15 +56,15 @@ export const getFinancialReport = async (req: AuthRequest, res: Response) => {
       }
     }
 
-    // Get all expenses and incomes for the user
-    const expenses = await Expense.find({
+    // Get all transactions for the user
+    const transactions = await Transaction.find({
       user: userId,
       date: { $gte: start, $lte: end },
     });
-    const incomes = await Income.find({
-      user: userId,
-      date: { $gte: start, $lte: end },
-    });
+
+    // Separate incomes and expenses
+    const incomes = transactions.filter((t) => t.type === "income");
+    const expenses = transactions.filter((t) => t.type === "expense");
 
     // Calculate totals
     const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
@@ -138,11 +137,11 @@ export const getFinancialReport = async (req: AuthRequest, res: Response) => {
       })
     );
 
-    // Income by source
+    // Income by source (category for income transactions)
     const incomeBySource: Record<string, number> = {};
     incomes.forEach((income) => {
-      incomeBySource[income.source] =
-        (incomeBySource[income.source] || 0) + income.amount;
+      incomeBySource[income.category] =
+        (incomeBySource[income.category] || 0) + income.amount;
     });
 
     // Budget performance
@@ -173,14 +172,12 @@ export const getFinancialReport = async (req: AuthRequest, res: Response) => {
     const prevEnd = new Date(start);
     prevEnd.setDate(prevEnd.getDate() - 1);
 
-    const prevExpenses = await Expense.find({
+    const prevTransactions = await Transaction.find({
       user: userId,
       date: { $gte: prevStart, $lte: prevEnd },
     });
-    const prevIncomes = await Income.find({
-      user: userId,
-      date: { $gte: prevStart, $lte: prevEnd },
-    });
+    const prevIncomes = prevTransactions.filter((t) => t.type === "income");
+    const prevExpenses = prevTransactions.filter((t) => t.type === "expense");
 
     const prevTotalIncome = prevIncomes.reduce(
       (sum, income) => sum + income.amount,
@@ -199,14 +196,12 @@ export const getFinancialReport = async (req: AuthRequest, res: Response) => {
 
     // Year-to-date data
     const ytdStart = new Date(now.getFullYear(), 0, 1);
-    const ytdExpenses = await Expense.find({
+    const ytdTransactions = await Transaction.find({
       user: userId,
       date: { $gte: ytdStart, $lte: now },
     });
-    const ytdIncomes = await Income.find({
-      user: userId,
-      date: { $gte: ytdStart, $lte: now },
-    });
+    const ytdIncomes = ytdTransactions.filter((t) => t.type === "income");
+    const ytdExpenses = ytdTransactions.filter((t) => t.type === "expense");
 
     const ytdTotalIncome = ytdIncomes.reduce(
       (sum, income) => sum + income.amount,
@@ -221,10 +216,13 @@ export const getFinancialReport = async (req: AuthRequest, res: Response) => {
     // YTD change (compare with previous year)
     const prevYtdStart = new Date(now.getFullYear() - 1, 0, 1);
     const prevYtdEnd = new Date(now.getFullYear() - 1, 11, 31);
-    const prevYtdIncomes = await Income.find({
+    const prevYtdTransactions = await Transaction.find({
       user: userId,
       date: { $gte: prevYtdStart, $lte: prevYtdEnd },
     });
+    const prevYtdIncomes = prevYtdTransactions.filter(
+      (t) => t.type === "income"
+    );
     const prevYtdTotalIncome = prevYtdIncomes.reduce(
       (sum, income) => sum + income.amount,
       0
@@ -317,10 +315,13 @@ export const getCategoryReport = async (req: AuthRequest, res: Response) => {
       start = new Date(now.getFullYear(), now.getMonth() - 6, 1);
     }
 
-    const expenses = await Expense.find({
+    const transactions = await Transaction.find({
       user: userId,
       date: { $gte: start, $lte: end },
     });
+
+    // Get only expenses
+    const expenses = transactions.filter((t) => t.type === "expense");
 
     // Group by category
     const categoryData: Record<
@@ -360,14 +361,14 @@ export const getTrendReport = async (req: AuthRequest, res: Response) => {
     const monthsCount = period === "12months" ? 12 : 6;
     const start = new Date(now.getFullYear(), now.getMonth() - monthsCount, 1);
 
-    const expenses = await Expense.find({
+    const transactions = await Transaction.find({
       user: userId,
       date: { $gte: start, $lte: now },
     });
-    const incomes = await Income.find({
-      user: userId,
-      date: { $gte: start, $lte: now },
-    });
+
+    // Separate incomes and expenses
+    const incomes = transactions.filter((t) => t.type === "income");
+    const expenses = transactions.filter((t) => t.type === "expense");
 
     // Monthly trends
     const trends: {
@@ -426,7 +427,10 @@ export const getBudgetReport = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id;
 
     const budgets = await Budget.find({ user: userId });
-    const expenses = await Expense.find({ user: userId });
+    const transactions = await Transaction.find({ user: userId });
+
+    // Get only expenses
+    const expenses = transactions.filter((t) => t.type === "expense");
 
     // Calculate actual spending per category
     const expensesByCategory: Record<string, number> = {};

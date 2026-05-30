@@ -8,6 +8,7 @@ import savingRoutes from "./routes/savingRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
+import transactionRoutes from "./routes/transactionRoutes.js";
 import { protect } from "./middleware/authMiddleware.js";
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 
 // Define Routes with protection
+app.use("/api/transactions", protect, transactionRoutes);
 app.use("/api/expenses", protect, expenseRoutes);
 app.use("/api/income", protect, incomeRoutes);
 app.use("/api/savings", protect, savingRoutes);

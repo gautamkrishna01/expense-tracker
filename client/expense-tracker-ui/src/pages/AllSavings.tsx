@@ -85,15 +85,18 @@ const AllSavings = () => {
         setSavings(
           savings.map((s) => (s._id === editingSaving._id ? res.data : s))
         );
-        toast.success("Entry updated");
+        toast.success("Saving updated successfully");
       } else {
         const res = await savingAPI.create(data);
         setSavings([...savings, res.data]);
-        toast.success("Entry added");
+        toast.success("Saving added successfully");
       }
       setIsModalOpen(false);
-    } catch (err) {
-      toast.error("Failed to save");
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message ||
+        (editingSaving ? "Failed to update saving" : "Failed to add saving");
+      toast.error(errorMessage);
     }
   };
 
@@ -243,9 +246,11 @@ const AllSavings = () => {
           try {
             await savingAPI.delete(deleteId);
             setSavings(savings.filter((s) => s._id !== deleteId));
-            toast.success("Deleted");
-          } catch {
-            toast.error("Failed");
+            toast.success("Saving deleted successfully");
+          } catch (err: any) {
+            const errorMessage =
+              err.response?.data?.message || "Failed to delete saving";
+            toast.error(errorMessage);
           }
           setIsDeleteModalOpen(false);
         }}

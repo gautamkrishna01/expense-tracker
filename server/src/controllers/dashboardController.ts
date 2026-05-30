@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import Expense from "../models/Expense";
-import Income from "../models/Income";
+import Transaction from "../models/Transaction";
 import Budget from "../models/Budget";
 
 interface AuthRequest extends Request {
@@ -29,12 +28,15 @@ export const getDashboardSummary = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
 
-    // Get total income
-    const incomes = await Income.find({ user: userId });
+    // Get all transactions
+    const transactions = await Transaction.find({ user: userId });
+
+    // Get total income (type: "income")
+    const incomes = transactions.filter((t) => t.type === "income");
     const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
 
-    // Get total expenses
-    const expenses = await Expense.find({ user: userId });
+    // Get total expenses (type: "expense")
+    const expenses = transactions.filter((t) => t.type === "expense");
     const totalExpense = expenses.reduce(
       (sum, expense) => sum + expense.amount,
       0
@@ -65,24 +67,16 @@ export const getDashboardSummary = async (req: AuthRequest, res: Response) => {
     });
 
     // Get recent transactions (last 5)
-    const recentIncomes = await Income.find({ user: userId })
-      .sort({ date: -1 })
-      .limit(3);
-
-    const recentExpenses = await Expense.find({ user: userId })
-      .sort({ date: -1 })
-      .limit(3);
-
     const recentTransactions = [
-      ...recentIncomes.map((income) => ({
+      ...incomes.slice(0, 3).map((income) => ({
         id: income._id,
         title: income.title,
         amount: income.amount,
         date: income.date,
         type: "income" as const,
-        category: income.source,
+        category: income.category,
       })),
-      ...recentExpenses.map((expense) => ({
+      ...expenses.slice(0, 3).map((expense) => ({
         id: expense._id,
         title: expense.title,
         amount: -expense.amount,

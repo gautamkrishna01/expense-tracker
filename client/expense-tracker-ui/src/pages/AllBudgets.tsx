@@ -115,10 +115,11 @@ const AllBudgets = () => {
       }
       setIsModalOpen(false);
       setEditingBudget(null);
-    } catch (error) {
-      toast.error(
-        editingBudget ? "Failed to update budget" : "Failed to add budget"
-      );
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        (editingBudget ? "Failed to update budget" : "Failed to add budget");
+      toast.error(errorMessage);
       console.error("Error saving budget:", error);
     }
   };
@@ -140,8 +141,10 @@ const AllBudgets = () => {
       await budgetAPI.delete(budgetToDeleteId);
       setBudgets(budgets.filter((b) => b._id !== budgetToDeleteId));
       toast.success("Budget deleted successfully");
-    } catch (error) {
-      toast.error("Failed to delete budget");
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to delete budget";
+      toast.error(errorMessage);
       console.error("Error deleting budget:", error);
     } finally {
       setIsDeleting(false);

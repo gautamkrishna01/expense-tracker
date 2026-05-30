@@ -38,6 +38,16 @@ export const authAPI = {
   deleteAccount: () => api.delete("/auth/account"),
 };
 
+// Transaction API (Unified)
+export const transactionAPI = {
+  getAll: (type?: "income" | "expense") =>
+    api.get("/transactions", { params: { type } }),
+  getById: (id: string) => api.get(`/transactions/${id}`),
+  create: (data: any) => api.post("/transactions", data),
+  update: (id: string, data: any) => api.put(`/transactions/${id}`, data),
+  delete: (id: string) => api.delete(`/transactions/${id}`),
+};
+
 // Expense API
 export const expenseAPI = {
   getAll: () => api.get("/expenses"),
