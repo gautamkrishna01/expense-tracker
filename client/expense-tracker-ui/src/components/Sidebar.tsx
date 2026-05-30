@@ -76,19 +76,14 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           Dashboard
         </NavLink>
 
-        <NavLink to="/expenses/all" className={navItemClass}>
-          <Receipt className="mr-3 h-5 w-5" />
-          Expenses
-        </NavLink>
-
         <NavLink to="/income/all" className={navItemClass}>
           <Wallet className="mr-3 h-5 w-5" />
           Income
         </NavLink>
 
-        <NavLink to="/savings/all" className={navItemClass}>
-          <PiggyBank className="mr-3 h-5 w-5" />
-          Savings
+        <NavLink to="/expenses/all" className={navItemClass}>
+          <Receipt className="mr-3 h-5 w-5" />
+          Expense
         </NavLink>
 
         <NavLink to="/budget" className={navItemClass}>
@@ -96,9 +91,19 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           Budget
         </NavLink>
 
+        <NavLink to="/savings/all" className={navItemClass}>
+          <PiggyBank className="mr-3 h-5 w-5" />
+          Saving
+        </NavLink>
+
         <NavLink to="/reports" className={navItemClass}>
           <BarChart3 className="mr-3 h-5 w-5" />
           Reports
+        </NavLink>
+
+        <NavLink to="/settings" className={navItemClass}>
+          <Settings className="mr-3 h-5 w-5" />
+          Settings
         </NavLink>
 
         <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-700">
@@ -109,10 +114,6 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           <NavLink to="/profile" className={navItemClass}>
             <User className="mr-3 h-5 w-5" />
             Profile
-          </NavLink>
-          <NavLink to="/settings" className={navItemClass}>
-            <Settings className="mr-3 h-5 w-5" />
-            Settings
           </NavLink>
         </div>
       </nav>
