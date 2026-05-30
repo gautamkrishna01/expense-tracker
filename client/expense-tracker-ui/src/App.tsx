@@ -29,6 +29,14 @@ interface User {
   id: string;
   name: string;
   email: string;
+  settings?: {
+    currency: string;
+    dateFormat: string;
+    language: string;
+    emailNotifications: boolean;
+    budgetAlerts: boolean;
+    theme: "light" | "dark";
+  };
   createdAt?: string;
 }
 
@@ -47,6 +55,7 @@ const MainLayout = () => {
   const [loading, setLoading] = React.useState(true);
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [user, setUser] = React.useState<User | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
   React.useEffect(() => {
     const checkAuth = async () => {
@@ -65,6 +74,15 @@ const MainLayout = () => {
     checkAuth();
   }, []);
 
+  // Apply theme globally whenever the user object or their settings change
+  React.useEffect(() => {
+    if (user?.settings?.theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [user]);
+
   const updateUser = (userData: Partial<User>) => {
     setUser((prev) => (prev ? { ...prev, ...userData } : null));
   };
@@ -81,10 +99,22 @@ const MainLayout = () => {
   return (
     <UserContext.Provider value={{ user, updateUser }}>
       <div className="flex">
-        <Sidebar />
-        <div className="flex-1 ml-64 flex flex-col min-h-screen bg-gray-50">
-          <TopBar />
-          <main className="p-8">
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+
+        {/* Backdrop for mobile */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
+        <div className="flex-1 lg:ml-64 flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 min-w-0">
+          <TopBar onMenuClick={() => setIsSidebarOpen(true)} />
+          <main className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
             <Outlet />
           </main>
         </div>

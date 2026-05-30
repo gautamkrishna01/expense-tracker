@@ -31,6 +31,14 @@ interface UserData {
   id: string;
   name: string;
   email: string;
+  settings?: {
+    currency: string;
+    dateFormat: string;
+    language: string;
+    emailNotifications: boolean;
+    budgetAlerts: boolean;
+    theme: "light" | "dark";
+  };
   createdAt?: string;
 }
 

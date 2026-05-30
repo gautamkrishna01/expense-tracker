@@ -1,10 +1,20 @@
 import mongoose, { Schema, Document } from "mongoose";
 import bcrypt from "bcryptjs";
 
+export interface IUserSettings {
+  currency: string;
+  dateFormat: string;
+  language: string;
+  emailNotifications: boolean;
+  budgetAlerts: boolean;
+  theme: "light" | "dark";
+}
+
 export interface IUser extends Document {
   email: string;
   password: string;
   name: string;
+  settings: IUserSettings;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -13,6 +23,14 @@ const UserSchema: Schema = new Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     name: { type: String, required: true },
+    settings: {
+      currency: { type: String, default: "USD" },
+      dateFormat: { type: String, default: "DD/MM/YYYY" },
+      language: { type: String, default: "en" },
+      emailNotifications: { type: Boolean, default: true },
+      budgetAlerts: { type: Boolean, default: true },
+      theme: { type: String, enum: ["light", "dark"], default: "light" },
+    },
   },
   { timestamps: true }
 );

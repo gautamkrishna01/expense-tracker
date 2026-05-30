@@ -22,6 +22,16 @@ export const authAPI = {
     api.put("/auth/profile", data),
   updatePassword: (data: { currentPassword: string; newPassword: string }) =>
     api.put("/auth/password", data),
+  getSettings: () => api.get("/auth/settings"),
+  updateSettings: (data: {
+    currency?: string;
+    dateFormat?: string;
+    language?: string;
+    emailNotifications?: boolean;
+    budgetAlerts?: boolean;
+    theme?: "light" | "dark";
+  }) => api.put("/auth/settings", data),
+  deleteAccount: () => api.delete("/auth/account"),
 };
 
 // Expense API

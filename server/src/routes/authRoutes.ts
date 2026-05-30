@@ -6,6 +6,9 @@ import {
   logout,
   updateProfile,
   updatePassword,
+  getSettings,
+  updateSettings,
+  deleteAccount,
 } from "../controllers/authController";
 import { protect } from "../middleware/authMiddleware";
 import { body } from "express-validator";
@@ -69,5 +72,43 @@ router.put(
   ],
   updatePassword
 );
+
+// Settings routes (protected)
+router.get("/settings", protect, getSettings);
+
+router.put(
+  "/settings",
+  protect,
+  [
+    body("currency")
+      .optional()
+      .isString()
+      .withMessage("Currency must be a string"),
+    body("dateFormat")
+      .optional()
+      .isString()
+      .withMessage("Date format must be a string"),
+    body("language")
+      .optional()
+      .isString()
+      .withMessage("Language must be a string"),
+    body("emailNotifications")
+      .optional()
+      .isBoolean()
+      .withMessage("Email notifications must be a boolean"),
+    body("budgetAlerts")
+      .optional()
+      .isBoolean()
+      .withMessage("Budget alerts must be a boolean"),
+    body("theme")
+      .optional()
+      .isIn(["light", "dark"])
+      .withMessage("Theme must be either light or dark"),
+  ],
+  updateSettings
+);
+
+// Delete account route (protected)
+router.delete("/account", protect, deleteAccount);
 
 export default router;

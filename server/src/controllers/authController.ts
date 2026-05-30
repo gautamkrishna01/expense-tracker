@@ -214,3 +214,106 @@ export const updatePassword = async (
     res.status(500).send("Server error");
   }
 };
+
+// Get user settings
+export const getSettings = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ msg: "Unauthorized" });
+    }
+
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    res.json({
+      settings: user.settings,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+};
+
+// Update user settings
+export const updateSettings = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ msg: "Unauthorized" });
+    }
+
+    const {
+      currency,
+      dateFormat,
+      language,
+      emailNotifications,
+      budgetAlerts,
+      theme,
+    } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Update settings
+    if (currency !== undefined) user.settings.currency = currency;
+    if (dateFormat !== undefined) user.settings.dateFormat = dateFormat;
+    if (language !== undefined) user.settings.language = language;
+    if (emailNotifications !== undefined)
+      user.settings.emailNotifications = emailNotifications;
+    if (budgetAlerts !== undefined) user.settings.budgetAlerts = budgetAlerts;
+    if (theme !== undefined) user.settings.theme = theme;
+
+    await user.save();
+
+    res.json({
+      msg: "Settings updated successfully",
+      settings: user.settings,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+};
+
+// Delete user account
+export const deleteAccount = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ msg: "Unauthorized" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Delete user and all associated data
+    await User.findByIdAndDelete(req.user.id);
+
+    res
+      .clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      })
+      .json({ msg: "Account deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+};
