@@ -41,31 +41,41 @@ const FilterBar: React.FC<FilterBarProps> = ({
   placeholder = "Search...",
 }) => {
   return (
-    <div className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+    <div className="flex flex-wrap items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm transition-colors duration-200">
       {/* Search Bar */}
       <div className="relative flex-grow min-w-[200px]">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
         <input
           type="text"
           placeholder={placeholder}
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-sm"
+          className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-gray-900 dark:text-white transition-all text-sm"
         />
       </div>
 
-      {/* Date Range */}
-      <div className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
-        <Calendar className="h-4 w-4 text-gray-400" />
+      {/* From Date */}
+      <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 transition-colors duration-200">
+        <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+        <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase">
+          From
+        </span>
         <NepaliDatePicker
-          inputClassName="bg-transparent text-xs font-semibold text-gray-600 focus:outline-none w-24"
+          inputClassName="bg-transparent text-xs font-semibold text-gray-600 dark:text-gray-300 focus:outline-none w-24"
           value={startDate}
           onChange={(value: string) => onStartDateChange(value)}
           options={{ calenderType: "Nepali", format: "YYYY-MM-DD" }}
         />
-        <span className="text-gray-300">-</span>
+      </div>
+
+      {/* To Date */}
+      <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 transition-colors duration-200">
+        <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+        <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase">
+          To
+        </span>
         <NepaliDatePicker
-          inputClassName="bg-transparent text-xs font-semibold text-gray-600 focus:outline-none w-24"
+          inputClassName="bg-transparent text-xs font-semibold text-gray-600 dark:text-gray-300 focus:outline-none w-24"
           value={endDate}
           onChange={(value: string) => onEndDateChange(value)}
           options={{ calenderType: "Nepali", format: "YYYY-MM-DD" }}
@@ -74,11 +84,11 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* Category */}
       <div className="relative">
-        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
         <select
           value={selectedCategory}
           onChange={(e) => onCategoryChange(e.target.value)}
-          className="pl-10 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-white transition-all appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="pl-10 pr-8 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-900 transition-all appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <option value="All">All Categories</option>
           {categories.map((cat) => (
@@ -90,14 +100,14 @@ const FilterBar: React.FC<FilterBarProps> = ({
       </div>
 
       {/* Amount Range */}
-      <div className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
-        <Coins className="h-4 w-4 text-gray-400" />
+      <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 transition-colors duration-200">
+        <Coins className="h-4 w-4 text-gray-400 dark:text-gray-500" />
         <input
           type="number"
           placeholder="Min"
           value={minAmount}
           onChange={(e) => onMinAmountChange(e.target.value)}
-          className="w-16 bg-transparent text-xs font-semibold text-gray-600 focus:outline-none placeholder:text-gray-300"
+          className="w-16 bg-transparent text-xs font-semibold text-gray-600 dark:text-gray-300 focus:outline-none placeholder:text-gray-300 dark:placeholder:text-gray-500"
         />
         <span className="text-gray-300">-</span>
         <input
@@ -105,17 +115,17 @@ const FilterBar: React.FC<FilterBarProps> = ({
           placeholder="Max"
           value={maxAmount}
           onChange={(e) => onMaxAmountChange(e.target.value)}
-          className="w-16 bg-transparent text-xs font-semibold text-gray-600 focus:outline-none placeholder:text-gray-300"
+          className="w-16 bg-transparent text-xs font-semibold text-gray-600 dark:text-gray-300 focus:outline-none placeholder:text-gray-300 dark:placeholder:text-gray-500"
         />
       </div>
 
       {/* Sort */}
       <div className="relative">
-        <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
         <select
           value={sortBy}
           onChange={(e) => onSortChange(e.target.value)}
-          className="pl-10 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-white transition-all appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="pl-10 pr-8 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-900 transition-all appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <option value="newest">Newest First</option>
           <option value="oldest">Oldest First</option>

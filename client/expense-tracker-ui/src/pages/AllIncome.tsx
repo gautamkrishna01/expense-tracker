@@ -66,10 +66,8 @@ const AllIncome = () => {
         .includes(searchTerm.toLowerCase());
       const matchesSource =
         selectedSource === "All" || entry.source === selectedSource;
-      const matchesStartDate =
-        !startDate || new Date(entry.date) >= new Date(startDate);
-      const matchesEndDate =
-        !endDate || new Date(entry.date) <= new Date(endDate);
+      const matchesStartDate = !startDate || entry.date >= startDate;
+      const matchesEndDate = !endDate || entry.date <= endDate;
       const matchesMinAmount =
         !minAmount || entry.amount >= parseFloat(minAmount);
       const matchesMaxAmount =
@@ -85,10 +83,8 @@ const AllIncome = () => {
     });
 
     return result.sort((a, b) => {
-      if (sortBy === "newest")
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      if (sortBy === "oldest")
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      if (sortBy === "newest") return b.date.localeCompare(a.date);
+      if (sortBy === "oldest") return a.date.localeCompare(b.date);
       if (sortBy === "amount-high") return b.amount - a.amount;
       if (sortBy === "amount-low") return a.amount - b.amount;
       return 0;
@@ -279,7 +275,7 @@ const AllIncome = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-                      {new Date(income.date).toLocaleDateString()}
+                      {income.date.split("T")[0]}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium truncate max-w-[150px]">
                       {income.note || "-"}

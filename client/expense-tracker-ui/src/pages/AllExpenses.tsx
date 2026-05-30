@@ -76,10 +76,8 @@ const AllExpenses = () => {
         .includes(searchTerm.toLowerCase());
       const matchesCategory =
         selectedCategory === "All" || expense.category === selectedCategory;
-      const matchesStartDate =
-        !startDate || new Date(expense.date) >= new Date(startDate);
-      const matchesEndDate =
-        !endDate || new Date(expense.date) <= new Date(endDate);
+      const matchesStartDate = !startDate || expense.date >= startDate;
+      const matchesEndDate = !endDate || expense.date <= endDate;
       const matchesMinAmount =
         !minAmount || expense.amount >= parseFloat(minAmount);
       const matchesMaxAmount =
@@ -95,10 +93,8 @@ const AllExpenses = () => {
     });
 
     return result.sort((a, b) => {
-      if (sortBy === "newest")
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      if (sortBy === "oldest")
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      if (sortBy === "newest") return b.date.localeCompare(a.date);
+      if (sortBy === "oldest") return a.date.localeCompare(b.date);
       if (sortBy === "amount-high") return b.amount - a.amount;
       if (sortBy === "amount-low") return a.amount - b.amount;
       return 0;
@@ -290,7 +286,7 @@ const AllExpenses = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-                      {new Date(expense.date).toLocaleDateString()}
+                      {expense.date.split("T")[0]}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center text-sm text-gray-600">

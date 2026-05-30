@@ -29,21 +29,21 @@ const categories = [
 ];
 
 const months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
+  "Baisakh",
+  "Jestha",
+  "Ashadh",
+  "Shrawan",
+  "Bhadra",
+  "Ashwin",
+  "Kartik",
+  "Mangshir",
+  "Poush",
+  "Magh",
+  "Falgun",
+  "Chaitra",
 ];
 
-const years = [2024, 2025, 2026];
+const years = [2080, 2081, 2082, 2083];
 
 const BudgetForm = ({
   onSubmit,
@@ -61,8 +61,8 @@ const BudgetForm = ({
       amount: 0,
       spent: 0,
       category: "Food",
-      month: months[new Date().getMonth()],
-      year: new Date().getFullYear(),
+      month: "Baisakh",
+      year: 2081,
       note: "",
     },
   });

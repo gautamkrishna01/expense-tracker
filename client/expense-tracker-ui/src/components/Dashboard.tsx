@@ -375,10 +375,7 @@ const Dashboard = () => {
                     })}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {new Date(transaction.date).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}
+                    {transaction.date.split("T")[0]}
                   </p>
                 </div>
               </div>

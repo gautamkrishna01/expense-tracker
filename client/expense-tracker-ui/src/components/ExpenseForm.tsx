@@ -1,5 +1,7 @@
 import React, { useContext } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import { NepaliDatePicker } from "nepali-datepicker-reactjs";
+import "nepali-datepicker-reactjs/dist/index.css";
 import { UserContext } from "../App";
 import { CURRENCIES } from "../constants";
 
@@ -31,6 +33,7 @@ const ExpenseForm = ({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<ExpenseFormData>({
     mode: "onChange",
@@ -38,7 +41,7 @@ const ExpenseForm = ({
       title: "",
       category: "Food & Drinks",
       amount: 0,
-      date: new Date().toISOString().split("T")[0],
+      date: "",
       paymentMethod: "Cash",
     },
   });
@@ -47,13 +50,13 @@ const ExpenseForm = ({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       {/* Title */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
           Title
         </label>
         <input
           {...register("title", { required: "Title is required" })}
           placeholder="e.g., Grocery Shopping"
-          className={`block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
+          className={`block w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
             errors.title ? "border-red-500 ring-2 ring-red-500/10" : ""
           }`}
         />
@@ -67,12 +70,12 @@ const ExpenseForm = ({
       <div className="grid grid-cols-2 gap-4">
         {/* Category */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
             Category
           </label>
           <select
             {...register("category", { required: "Category is required" })}
-            className="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="block w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           >
             <option value="Food & Drinks">Food & Drinks</option>
             <option value="Housing">Housing</option>
@@ -86,12 +89,12 @@ const ExpenseForm = ({
 
         {/* Amount */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
             Amount
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-500 sm:text-sm font-bold">
+              <span className="text-gray-500 dark:text-gray-400 sm:text-sm font-bold">
                 {currencySymbol}
               </span>
             </div>
@@ -102,7 +105,7 @@ const ExpenseForm = ({
                 required: "Amount is required",
                 min: { value: 0.01, message: "Amount must be greater than 0" },
               })}
-              className={`block w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
+              className={`block w-full pl-11 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
                 errors.amount ? "border-red-500 ring-2 ring-red-500/10" : ""
               }`}
               placeholder="0.00"
@@ -119,26 +122,41 @@ const ExpenseForm = ({
       <div className="grid grid-cols-2 gap-4">
         {/* Date */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
             Date
           </label>
-          <input
-            type="date"
-            {...register("date", { required: "Date is required" })}
-            className="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          <Controller
+            control={control}
+            name="date"
+            rules={{ required: "Date is required" }}
+            render={({ field }) => (
+              <NepaliDatePicker
+                inputClassName={`block w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
+                  errors.date ? "border-red-500 ring-2 ring-red-500/10" : ""
+                }`}
+                value={field.value}
+                onChange={(value: string) => field.onChange(value)}
+                options={{ calenderType: "Nepali", format: "YYYY-MM-DD" }}
+              />
+            )}
           />
+          {errors.date && (
+            <p className="mt-1.5 text-xs text-red-500 font-medium">
+              {errors.date.message}
+            </p>
+          )}
         </div>
 
         {/* Payment Method */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
             Payment Method
           </label>
           <select
             {...register("paymentMethod", {
               required: "Payment method is required",
             })}
-            className="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="block w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           >
             <option value="Cash">Cash</option>
             <option value="Card">Card</option>
@@ -149,14 +167,14 @@ const ExpenseForm = ({
 
       {/* Note */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
           Note (Optional)
         </label>
         <textarea
           {...register("note")}
           rows={3}
           placeholder="Add some details..."
-          className="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          className="block w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         />
       </div>
 

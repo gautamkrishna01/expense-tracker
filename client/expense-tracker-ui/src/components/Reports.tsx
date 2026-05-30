@@ -52,6 +52,21 @@ interface Summary {
   closingBalance: number;
 }
 
+const NEPALI_MONTHS = [
+  "Baisakh",
+  "Jestha",
+  "Ashadh",
+  "Shrawan",
+  "Bhadra",
+  "Ashwin",
+  "Kartik",
+  "Mangshir",
+  "Poush",
+  "Magh",
+  "Falgun",
+  "Chaitra",
+];
+
 const Reports = () => {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
@@ -77,6 +92,38 @@ const Reports = () => {
     "#84cc16", // lime-500
     "#ec4899", // pink-500
   ];
+
+  // Helper to format month names to Nepali
+  const formatMonth = (month: string) => {
+    const monthMap: Record<string, string> = {
+      Jan: "Baisakh",
+      Feb: "Jestha",
+      Mar: "Ashadh",
+      Apr: "Shrawan",
+      May: "Bhadra",
+      Jun: "Ashwin",
+      Jul: "Kartik",
+      Aug: "Mangshir",
+      Sep: "Poush",
+      Oct: "Magh",
+      Nov: "Falgun",
+      Dec: "Chaitra",
+      January: "Baisakh",
+      February: "Jestha",
+      March: "Ashadh",
+      April: "Shrawan",
+      May_: "Bhadra",
+      June: "Ashwin",
+      July: "Kartik",
+      August: "Mangshir",
+      September: "Poush",
+      October: "Magh",
+      November: "Falgun",
+      December: "Chaitra",
+    };
+    // Map English names (standard from most backends) to Nepali names
+    return monthMap[month] || month;
+  };
 
   useEffect(() => {
     const fetchReportData = async () => {
@@ -111,7 +158,9 @@ const Reports = () => {
         },
         {
           label: "Avg. Expense",
-          value: `${currencySymbol} ${summary.avgExpense.toLocaleString()}`,
+          value: `${currencySymbol} ${summary.avgExpense.toLocaleString(
+            "en-IN"
+          )}`,
           sub: `Based on last ${
             period === "1year"
               ? "year"
@@ -123,8 +172,10 @@ const Reports = () => {
         },
         {
           label: "Best Saving",
-          value: `${currencySymbol} ${summary.bestSaving.amount.toLocaleString()}`,
-          sub: `Achieved in ${summary.bestSaving.month || "N/A"}`,
+          value: `${currencySymbol} ${summary.bestSaving.amount.toLocaleString(
+            "en-IN"
+          )}`,
+          sub: `Achieved in ${formatMonth(summary.bestSaving.month) || "N/A"}`,
           icon: <TrendingUp className="h-5 w-5 text-emerald-500" />,
         },
       ]
@@ -151,14 +202,14 @@ const Reports = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-indigo-100 rounded-lg">
-            <BarChart3 className="h-6 w-6 text-indigo-600" />
+          <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+            <BarChart3 className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Financial Reports
             </h1>
-            <p className="text-sm text-gray-500 font-medium">
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
               Detailed analysis of your financial journey.
             </p>
           </div>
@@ -167,7 +218,7 @@ const Reports = () => {
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
-            className="flex items-center px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+            className="flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="1month">Last 1 Month</option>
             <option value="3months">Last 3 Months</option>
@@ -186,14 +237,16 @@ const Reports = () => {
         {stats.map((stat, i) => (
           <div
             key={i}
-            className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4"
+            className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center space-x-4"
           >
-            <div className="p-3 bg-gray-50 rounded-xl">{stat.icon}</div>
+            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
+              {stat.icon}
+            </div>
             <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+              <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 {stat.label}
               </p>
-              <h3 className="text-2xl font-extrabold text-gray-900">
+              <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white">
                 {stat.value}
               </h3>
               <p className="text-[11px] text-gray-500 font-medium mt-0.5">
@@ -205,9 +258,9 @@ const Reports = () => {
       </div>
 
       {/* Main Income vs Expenses Chart */}
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div className="flex items-center justify-between mb-8">
-          <h3 className="text-lg font-bold text-gray-900">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
             Income vs Expenses Comparison
           </h3>
           <div className="flex items-center space-x-4">
@@ -228,7 +281,8 @@ const Reports = () => {
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke="#f3f4f6"
+                stroke="currentColor"
+                className="text-gray-100 dark:text-gray-700"
               />
               <XAxis
                 dataKey="month"
@@ -236,6 +290,7 @@ const Reports = () => {
                 tickLine={false}
                 tick={{ fontSize: 12, fontWeight: 600, fill: "#9ca3af" }}
                 dy={10}
+                tickFormatter={formatMonth}
               />
               <YAxis
                 axisLine={false}
@@ -243,12 +298,15 @@ const Reports = () => {
                 tick={{ fontSize: 12, fontWeight: 600, fill: "#9ca3af" }}
               />
               <Tooltip
-                cursor={{ fill: "#f9fafb" }}
+                cursor={{ fill: "currentColor", opacity: 0.1 }}
                 contentStyle={{
                   borderRadius: "12px",
                   border: "none",
                   boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+                  backgroundColor: "var(--tooltip-bg, #fff)",
+                  color: "var(--tooltip-color, #000)",
                 }}
+                labelFormatter={formatMonth}
               />
               <Bar
                 dataKey="income"
@@ -269,8 +327,8 @@ const Reports = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Category Breakdown (Pie Chart) */}
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-8">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-8">
             Expense Distribution
           </h3>
           {categoryData.length > 0 ? (
@@ -309,11 +367,11 @@ const Reports = () => {
                             categoryColors[i % categoryColors.length],
                         }}
                       />
-                      <span className="text-sm font-bold text-gray-600">
+                      <span className="text-sm font-bold text-gray-600 dark:text-gray-400">
                         {item.name}
                       </span>
                     </div>
-                    <span className="text-sm font-extrabold text-gray-900">
+                    <span className="text-sm font-extrabold text-gray-900 dark:text-white">
                       {currencySymbol} {item.value.toLocaleString()}
                     </span>
                   </div>
@@ -328,9 +386,11 @@ const Reports = () => {
         </div>
 
         {/* Savings Trend (Line Chart) */}
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-lg font-bold text-gray-900">Savings Growth</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+              Savings Growth
+            </h3>
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
               {summary?.ytdChange || "+0%"} Year-to-date
             </span>
@@ -341,16 +401,18 @@ const Reports = () => {
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
-                  stroke="#f3f4f6"
+                  stroke="currentColor"
+                  className="text-gray-100 dark:text-gray-700"
                 />
                 <XAxis
                   dataKey="month"
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 12, fontWeight: 600, fill: "#9ca3af" }}
+                  tickFormatter={formatMonth}
                 />
                 <YAxis hide />
-                <Tooltip />
+                <Tooltip labelFormatter={formatMonth} />
                 <Line
                   type="monotone"
                   dataKey="income"
@@ -372,19 +434,19 @@ const Reports = () => {
               <p className="text-[10px] font-bold text-gray-400 uppercase">
                 Opening Balance
               </p>
-              <p className="text-sm font-extrabold text-gray-900">
+              <p className="text-sm font-extrabold text-gray-900 dark:text-white">
                 {currencySymbol}{" "}
-                {summary?.openingBalance.toLocaleString() || "0"}
+                {summary?.openingBalance.toLocaleString("en-IN") || "0"}
               </p>
             </div>
-            <ChevronRight className="text-gray-300 h-4 w-4" />
+            <ChevronRight className="text-gray-300 dark:text-gray-600 h-4 w-4" />
             <div className="text-center">
               <p className="text-[10px] font-bold text-gray-400 uppercase">
                 Closing Balance
               </p>
               <p className="text-sm font-extrabold text-indigo-600">
                 {currencySymbol}{" "}
-                {summary?.closingBalance.toLocaleString() || "0"}
+                {summary?.closingBalance.toLocaleString("en-IN") || "0"}
               </p>
             </div>
           </div>

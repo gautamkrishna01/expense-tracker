@@ -1,5 +1,7 @@
 import React, { useContext } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import { NepaliDatePicker } from "nepali-datepicker-reactjs";
+import "nepali-datepicker-reactjs/dist/index.css";
 import { UserContext } from "../App";
 import { CURRENCIES } from "../constants";
 
@@ -31,6 +33,7 @@ const IncomeForm = ({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<IncomeFormData>({
     mode: "onChange",
@@ -38,7 +41,7 @@ const IncomeForm = ({
       title: "",
       amount: 0,
       source: "Salary",
-      date: new Date().toISOString().split("T")[0],
+      date: "",
       note: "",
     },
   });
@@ -119,11 +122,26 @@ const IncomeForm = ({
         <label className="block text-sm font-semibold text-gray-700 mb-1">
           Date
         </label>
-        <input
-          type="date"
-          {...register("date", { required: "Date is required" })}
-          className="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        <Controller
+          control={control}
+          name="date"
+          rules={{ required: "Date is required" }}
+          render={({ field }) => (
+            <NepaliDatePicker
+              inputClassName={`block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
+                errors.date ? "border-red-500 ring-2 ring-red-500/10" : ""
+              }`}
+              value={field.value}
+              onChange={(value: string) => field.onChange(value)}
+              options={{ calenderType: "Nepali", format: "YYYY-MM-DD" }}
+            />
+          )}
         />
+        {errors.date && (
+          <p className="mt-1.5 text-xs text-red-500 font-medium">
+            {errors.date.message}
+          </p>
+        )}
       </div>
 
       {/* Note */}
