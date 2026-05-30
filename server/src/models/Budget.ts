@@ -3,9 +3,11 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IBudget extends Document {
   title: string;
   amount: number;
-  date: Date;
+  spent: number;
   category: string;
-  description?: string;
+  month: string;
+  year: number;
+  note?: string;
   user: mongoose.Types.ObjectId;
 }
 
@@ -13,9 +15,11 @@ const BudgetSchema: Schema = new Schema(
   {
     title: { type: String, required: true },
     amount: { type: Number, required: true },
-    date: { type: Date, required: true },
+    spent: { type: Number, default: 0 },
     category: { type: String, required: true },
-    description: { type: String },
+    month: { type: String, required: true },
+    year: { type: Number, required: true },
+    note: { type: String },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }

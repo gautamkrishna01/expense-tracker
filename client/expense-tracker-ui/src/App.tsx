@@ -7,6 +7,7 @@ import {
   Outlet,
 } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
+import TopBar from "./components/TopBar";
 import { authAPI } from "./services/api";
 
 import AllExpenses from "./pages/AllExpenses";
@@ -27,12 +28,17 @@ import Settings from "./components/Settings";
 const MainLayout = () => {
   const [loading, setLoading] = React.useState(true);
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [user, setUser] = React.useState<{
+    name: string;
+    email: string;
+  } | null>(null);
 
   React.useEffect(() => {
     const checkAuth = async () => {
       try {
         // Try to fetch current user data using the cookie
-        await authAPI.getCurrentUser();
+        const response = await authAPI.getCurrentUser();
+        setUser(response.data);
         setIsAuthenticated(true);
       } catch (err) {
         setIsAuthenticated(false);
@@ -56,10 +62,12 @@ const MainLayout = () => {
   return (
     <div className="flex">
       <Sidebar />
-      {/* ml-64 matches the width of the sidebar (w-64) */}
-      <main className="flex-1 ml-64 min-h-screen bg-gray-50 p-8">
-        <Outlet />
-      </main>
+      <div className="flex-1 ml-64 flex flex-col min-h-screen bg-gray-50">
+        <TopBar user={user} />
+        <main className="p-8">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

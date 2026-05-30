@@ -4,8 +4,8 @@ export interface IIncome extends Document {
   title: string;
   amount: number;
   date: Date;
-  category: string;
-  description?: string;
+  source: string;
+  note?: string;
   user: mongoose.Types.ObjectId;
 }
 
@@ -14,8 +14,8 @@ const IncomeSchema: Schema = new Schema(
     title: { type: String, required: true },
     amount: { type: Number, required: true },
     date: { type: Date, required: true },
-    category: { type: String, required: true },
-    description: { type: String },
+    source: { type: String, required: true },
+    note: { type: String },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
