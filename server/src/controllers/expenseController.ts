@@ -1,18 +1,27 @@
 import { Request, Response } from "express";
 import Expense from "../models/Expense";
 
-export const getExpenses = async (req: Request, res: Response) => {
+interface AuthRequest extends Request {
+  user?: {
+    id: string;
+  };
+}
+
+export const getExpenses = async (req: AuthRequest, res: Response) => {
   try {
-    const expenses = await Expense.find();
+    const expenses = await Expense.find({ user: req.user?.id });
     res.status(200).json(expenses);
   } catch (error) {
     res.status(500).json({ message: "Error fetching expenses", error });
   }
 };
 
-export const getExpenseById = async (req: Request, res: Response) => {
+export const getExpenseById = async (req: AuthRequest, res: Response) => {
   try {
-    const expense = await Expense.findById(req.params.id);
+    const expense = await Expense.findOne({
+      _id: req.params.id,
+      user: req.user?.id,
+    });
     if (!expense) {
       return res.status(404).json({ message: "Expense not found" });
     }
@@ -22,9 +31,9 @@ export const getExpenseById = async (req: Request, res: Response) => {
   }
 };
 
-export const createExpense = async (req: Request, res: Response) => {
+export const createExpense = async (req: AuthRequest, res: Response) => {
   try {
-    const expense = new Expense(req.body);
+    const expense = new Expense({ ...req.body, user: req.user?.id });
     await expense.save();
     res.status(201).json(expense);
   } catch (error) {
@@ -32,12 +41,16 @@ export const createExpense = async (req: Request, res: Response) => {
   }
 };
 
-export const updateExpense = async (req: Request, res: Response) => {
+export const updateExpense = async (req: AuthRequest, res: Response) => {
   try {
-    const expense = await Expense.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const expense = await Expense.findOneAndUpdate(
+      { _id: req.params.id, user: req.user?.id },
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
     if (!expense) {
       return res.status(404).json({ message: "Expense not found" });
     }
@@ -47,9 +60,12 @@ export const updateExpense = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteExpense = async (req: Request, res: Response) => {
+export const deleteExpense = async (req: AuthRequest, res: Response) => {
   try {
-    const expense = await Expense.findByIdAndDelete(req.params.id);
+    const expense = await Expense.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user?.id,
+    });
     if (!expense) {
       return res.status(404).json({ message: "Expense not found" });
     }

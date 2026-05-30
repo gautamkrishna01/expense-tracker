@@ -6,6 +6,7 @@ export interface IIncome extends Document {
   date: Date;
   category: string;
   description?: string;
+  user: mongoose.Types.ObjectId;
 }
 
 const IncomeSchema: Schema = new Schema(
@@ -15,6 +16,7 @@ const IncomeSchema: Schema = new Schema(
     date: { type: Date, required: true },
     category: { type: String, required: true },
     description: { type: String },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );

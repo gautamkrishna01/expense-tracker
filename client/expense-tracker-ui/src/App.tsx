@@ -1,3 +1,4 @@
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -6,6 +7,7 @@ import {
   Outlet,
 } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
+import { authAPI } from "./services/api";
 
 import AllExpenses from "./pages/AllExpenses";
 import AddExpense from "./pages/AddExpense";
@@ -23,6 +25,34 @@ import Settings from "./components/Settings";
 
 // Layout component to wrap protected routes with the Sidebar
 const MainLayout = () => {
+  const [loading, setLoading] = React.useState(true);
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Try to fetch current user data using the cookie
+        await authAPI.getCurrentUser();
+        setIsAuthenticated(true);
+      } catch (err) {
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    // Redirect to login if not authenticated
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <div className="flex">
       <Sidebar />

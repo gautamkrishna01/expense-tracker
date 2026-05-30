@@ -1,18 +1,27 @@
 import { Request, Response } from "express";
 import Budget from "../models/Budget";
 
-export const getBudgets = async (req: Request, res: Response) => {
+interface AuthRequest extends Request {
+  user?: {
+    id: string;
+  };
+}
+
+export const getBudgets = async (req: AuthRequest, res: Response) => {
   try {
-    const budgets = await Budget.find();
+    const budgets = await Budget.find({ user: req.user?.id });
     res.status(200).json(budgets);
   } catch (error) {
     res.status(500).json({ message: "Error fetching budgets", error });
   }
 };
 
-export const getBudgetById = async (req: Request, res: Response) => {
+export const getBudgetById = async (req: AuthRequest, res: Response) => {
   try {
-    const budget = await Budget.findById(req.params.id);
+    const budget = await Budget.findOne({
+      _id: req.params.id,
+      user: req.user?.id,
+    });
     if (!budget) {
       return res.status(404).json({ message: "Budget not found" });
     }
@@ -22,9 +31,9 @@ export const getBudgetById = async (req: Request, res: Response) => {
   }
 };
 
-export const createBudget = async (req: Request, res: Response) => {
+export const createBudget = async (req: AuthRequest, res: Response) => {
   try {
-    const budget = new Budget(req.body);
+    const budget = new Budget({ ...req.body, user: req.user?.id });
     await budget.save();
     res.status(201).json(budget);
   } catch (error) {
@@ -32,12 +41,16 @@ export const createBudget = async (req: Request, res: Response) => {
   }
 };
 
-export const updateBudget = async (req: Request, res: Response) => {
+export const updateBudget = async (req: AuthRequest, res: Response) => {
   try {
-    const budget = await Budget.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const budget = await Budget.findOneAndUpdate(
+      { _id: req.params.id, user: req.user?.id },
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
     if (!budget) {
       return res.status(404).json({ message: "Budget not found" });
     }
@@ -47,9 +60,12 @@ export const updateBudget = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteBudget = async (req: Request, res: Response) => {
+export const deleteBudget = async (req: AuthRequest, res: Response) => {
   try {
-    const budget = await Budget.findByIdAndDelete(req.params.id);
+    const budget = await Budget.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user?.id,
+    });
     if (!budget) {
       return res.status(404).json({ message: "Budget not found" });
     }

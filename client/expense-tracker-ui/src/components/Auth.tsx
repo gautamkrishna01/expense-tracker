@@ -1,19 +1,28 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { authAPI } from "../services/api";
 
 interface AuthProps {
   mode: "login" | "register";
 }
 
+interface FormValues {
+  email: string;
+  password: string;
+  confirmPassword?: string;
+}
+
 const Auth = ({ mode }: AuthProps) => {
   const isLogin = mode === "login";
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors },
     getValues,
-  } = useForm({
+  } = useForm<FormValues>({
     mode: "onChange",
     defaultValues: {
       email: "",
@@ -22,15 +31,47 @@ const Auth = ({ mode }: AuthProps) => {
     },
   });
 
-  const onSubmit = (data: any) => {
-    // Here you would typically call an API to authenticate or register
-    if (isLogin) {
-      console.log("Logging in:", data);
-    } else {
-      console.log("Registering:", data);
+  // Redirect to dashboard if user is already logged in
+  React.useEffect(() => {
+    const checkSession = async () => {
+      try {
+        await authAPI.getCurrentUser();
+        navigate("/dashboard");
+      } catch (err) { /* Not logged in, stay on auth page */ }
+    };
+    checkSession();
+  }, [navigate]);
+
+  const onSubmit = async (data: FormValues) => {
+    try {
+      if (isLogin) {
+        // Login
+        await authAPI.login({
+          email: data.email,
+          password: data.password,
+        });
+        toast.success("Welcome back!");
+        // Redirect to dashboard
+        navigate("/dashboard");
+      } else {
+        // Register
+        const response = await authAPI.register({
+          email: data.email,
+          password: data.password,
+          name: data.email.split("@")[0], // Use email prefix as name
+        });
+        toast.success(`Welcome ${response.data.user.name}! Please sign in.`);
+        navigate("/login"); // Redirect to login as requested previously
+      }
+    } catch (error: any) {
+      const errorMsg =
+        error.response?.data?.msg ||
+        error.response?.data?.errors?.[0]?.msg ||
+        "Authentication failed";
+
+      toast.error(errorMsg);
+      console.error("Auth error:", error.response?.data || error.message);
     }
-    // Reset form after submission (optional)
-    // Note: reset is handled by react-hook-form if needed
   };
 
   return (

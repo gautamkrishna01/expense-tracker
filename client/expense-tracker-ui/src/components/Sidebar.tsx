@@ -1,5 +1,6 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { authAPI } from "../services/api";
 import {
   LayoutDashboard,
   Receipt,
@@ -13,6 +14,19 @@ import {
 } from "lucide-react";
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      // Call the server to clear the httpOnly cookie
+      await authAPI.logout();
+    } catch (error) {
+      console.error("Logout API failed:", error);
+    } finally {
+      navigate("/login");
+    }
+  };
+
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
       isActive
@@ -76,7 +90,10 @@ const Sidebar = () => {
       </nav>
 
       <div className="p-4 border-t border-gray-100">
-        <button className="flex w-full items-center px-4 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center px-4 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+        >
           <LogOut className="mr-3 h-5 w-5" />
           Logout
         </button>
