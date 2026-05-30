@@ -52,4 +52,21 @@ export const dashboardAPI = {
   getSummary: () => api.get("/dashboard/summary"),
 };
 
+// Reports API
+export const reportsAPI = {
+  getFinancialReport: (params?: {
+    period?: string;
+    startDate?: string;
+    endDate?: string;
+  }) => api.get("/reports/financial", { params }),
+  getCategoryReport: (params?: {
+    period?: string;
+    startDate?: string;
+    endDate?: string;
+  }) => api.get("/reports/category", { params }),
+  getTrendReport: (params?: { period?: string }) =>
+    api.get("/reports/trend", { params }),
+  getBudgetReport: () => api.get("/reports/budget"),
+};
+
 export default api;
