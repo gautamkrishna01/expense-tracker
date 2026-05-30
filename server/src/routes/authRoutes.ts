@@ -9,6 +9,8 @@ import {
   getSettings,
   updateSettings,
   deleteAccount,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/authController";
 import { protect } from "../middleware/authMiddleware";
 import { body } from "express-validator";
@@ -110,5 +112,22 @@ router.put(
 
 // Delete account route (protected)
 router.delete("/account", protect, deleteAccount);
+
+// Public recovery routes
+router.post(
+  "/forgot-password",
+  [body("email").isEmail().withMessage("Please enter a valid email")],
+  forgotPassword
+);
+
+router.post(
+  "/reset-password/:token",
+  [
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("New password must be at least 6 characters"),
+  ],
+  resetPassword
+);
 
 export default router;

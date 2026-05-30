@@ -31,6 +31,8 @@ const UserSchema: Schema = new Schema(
       budgetAlerts: { type: Boolean, default: true },
       theme: { type: String, enum: ["light", "dark"], default: "light" },
     },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );

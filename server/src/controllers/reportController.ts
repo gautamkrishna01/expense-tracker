@@ -9,6 +9,21 @@ interface AuthRequest extends Request {
   };
 }
 
+const NEPALI_MONTHS = [
+  "Baisakh",
+  "Jestha",
+  "Ashadh",
+  "Shrawan",
+  "Bhadra",
+  "Ashwin",
+  "Kartik",
+  "Mangshir",
+  "Poush",
+  "Magh",
+  "Falgun",
+  "Chaitra",
+];
+
 // Get comprehensive financial report data
 export const getFinancialReport = async (req: AuthRequest, res: Response) => {
   try {
@@ -101,7 +116,7 @@ export const getFinancialReport = async (req: AuthRequest, res: Response) => {
       );
 
       monthlyData.push({
-        month: date.toLocaleString("default", { month: "short" }),
+        month: NEPALI_MONTHS[date.getMonth()],
         income: monthIncome,
         expense: monthExpense,
         savings: monthIncome - monthExpense,
@@ -392,7 +407,7 @@ export const getTrendReport = async (req: AuthRequest, res: Response) => {
       );
 
       trends.push({
-        month: date.toLocaleString("default", { month: "short" }),
+        month: NEPALI_MONTHS[date.getMonth()],
         income: monthIncome,
         expense: monthExpense,
         savings: monthIncome - monthExpense,

@@ -9,6 +9,21 @@ interface AuthRequest extends Request {
   };
 }
 
+const NEPALI_MONTHS = [
+  "Baisakh",
+  "Jestha",
+  "Ashadh",
+  "Shrawan",
+  "Bhadra",
+  "Ashwin",
+  "Kartik",
+  "Mangshir",
+  "Poush",
+  "Magh",
+  "Falgun",
+  "Chaitra",
+];
+
 // Get dashboard summary data
 export const getDashboardSummary = async (req: AuthRequest, res: Response) => {
   try {
@@ -102,7 +117,7 @@ export const getDashboardSummary = async (req: AuthRequest, res: Response) => {
       });
 
       monthlyData.push({
-        month: date.toLocaleString("default", { month: "short" }),
+        month: NEPALI_MONTHS[date.getMonth()],
         income: monthIncomes.reduce((sum, income) => sum + income.amount, 0),
         expense: monthExpenses.reduce(
           (sum, expense) => sum + expense.amount,

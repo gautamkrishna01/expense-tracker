@@ -13,7 +13,7 @@ const IncomeSchema: Schema = new Schema(
   {
     title: { type: String, required: true },
     amount: { type: Number, required: true },
-    date: { type: Date, required: true },
+    date: { type: String, required: true },
     source: { type: String, required: true },
     note: { type: String },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },

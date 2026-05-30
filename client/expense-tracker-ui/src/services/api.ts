@@ -22,6 +22,10 @@ export const authAPI = {
     api.put("/auth/profile", data),
   updatePassword: (data: { currentPassword: string; newPassword: string }) =>
     api.put("/auth/password", data),
+  forgotPassword: (email: string) =>
+    api.post("/auth/forgot-password", { email }),
+  resetPassword: (token: string, data: { password: string }) =>
+    api.post(`/auth/reset-password/${token}`, data),
   getSettings: () => api.get("/auth/settings"),
   updateSettings: (data: {
     currency?: string;
