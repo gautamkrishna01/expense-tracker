@@ -1,8 +1,10 @@
-import * as React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 
 const ResetPassword = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
     handleSubmit,
@@ -16,8 +18,14 @@ const ResetPassword = () => {
     },
   });
 
-  const onSubmit = (data: any) => {
-    console.log("Password reset successful:", data);
+  const onSubmit = async (data: any) => {
+    setIsSubmitting(true);
+    try {
+      console.log("Password reset successful:", data);
+      // Add API call here
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -107,9 +115,17 @@ const ResetPassword = () => {
 
             <button
               type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-md shadow-indigo-200"
+              disabled={isSubmitting}
+              className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-md shadow-indigo-200 disabled:opacity-70"
             >
-              Reset Password
+              {isSubmitting ? (
+                <span className="flex items-center">
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Resetting...
+                </span>
+              ) : (
+                "Reset Password"
+              )}
             </button>
           </form>
 

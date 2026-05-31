@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { Loader2 } from "lucide-react";
 
 export interface BudgetFormData {
   title: string;
@@ -16,6 +17,7 @@ interface BudgetFormProps {
   onSubmit: (data: BudgetFormData) => void;
   initialData?: BudgetFormData;
   buttonText?: string;
+  isLoading?: boolean;
 }
 
 const categories = [
@@ -49,6 +51,7 @@ const BudgetForm = ({
   onSubmit,
   initialData,
   buttonText = "Save Budget",
+  isLoading = false,
 }: BudgetFormProps) => {
   const {
     register,
@@ -187,9 +190,17 @@ const BudgetForm = ({
 
       <button
         type="submit"
-        className="w-full py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-md shadow-indigo-200"
+        disabled={isLoading}
+        className="w-full py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-md shadow-indigo-200 disabled:opacity-70"
       >
-        {buttonText}
+        {isLoading ? (
+          <span className="flex items-center justify-center">
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Saving...
+          </span>
+        ) : (
+          buttonText
+        )}
       </button>
     </form>
   );

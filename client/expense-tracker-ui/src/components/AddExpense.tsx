@@ -1,15 +1,22 @@
-import * as React from "react";
+import React, { useState } from "react";
 import { PlusCircle, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import ExpenseForm, { type ExpenseFormData } from "./ExpenseForm";
 
 const AddExpense = () => {
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleAddExpense = (data: ExpenseFormData) => {
-    console.log("Adding new expense:", data);
-    // In a real app, you would send this to an API
-    navigate("/expenses/all");
+  const handleAddExpense = async (data: ExpenseFormData) => {
+    setIsSubmitting(true);
+    try {
+      console.log("Adding new expense:", data);
+      // Simulated API delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      navigate("/expenses/all");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -36,6 +43,7 @@ const AddExpense = () => {
         <ExpenseForm
           onSubmit={handleAddExpense}
           buttonText="Create Expense Entry"
+          isLoading={isSubmitting}
         />
       </div>
     </div>

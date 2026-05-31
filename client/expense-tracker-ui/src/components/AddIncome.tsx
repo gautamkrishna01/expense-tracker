@@ -1,15 +1,22 @@
-import * as React from "react";
+import React, { useState } from "react";
 import { PlusCircle, ArrowLeft, Wallet } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import IncomeForm, { type IncomeFormData } from "./IncomeForm";
 
 const AddIncome = () => {
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleAddIncome = (data: IncomeFormData) => {
-    console.log("Adding new income:", data);
-    // In a real app, you would send this to an API
-    navigate("/income/all");
+  const handleAddIncome = async (data: IncomeFormData) => {
+    setIsSubmitting(true);
+    try {
+      console.log("Adding new income:", data);
+      // Simulated API delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      navigate("/income/all");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -36,6 +43,7 @@ const AddIncome = () => {
         <IncomeForm
           onSubmit={handleAddIncome}
           buttonText="Create Income Entry"
+          isLoading={isSubmitting}
         />
       </div>
     </div>

@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { Loader2 } from "lucide-react";
 import { NepaliDatePicker } from "nepali-datepicker-reactjs";
 import "nepali-datepicker-reactjs/dist/index.css";
 import { UserContext } from "../App";
@@ -17,6 +18,7 @@ interface SavingFormProps {
   onSubmit: (data: SavingFormData) => void;
   initialData?: SavingFormData;
   buttonText?: string;
+  isLoading?: boolean;
 }
 
 const CATEGORIES = [
@@ -32,6 +34,7 @@ const SavingForm = ({
   onSubmit,
   initialData,
   buttonText = "Save Entry",
+  isLoading = false,
 }: SavingFormProps) => {
   const userContext = useContext(UserContext);
   const currencySymbol =
@@ -156,9 +159,17 @@ const SavingForm = ({
 
       <button
         type="submit"
-        className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100"
+        disabled={isLoading}
+        className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 disabled:opacity-70"
       >
-        {buttonText}
+        {isLoading ? (
+          <span className="flex items-center justify-center">
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Saving...
+          </span>
+        ) : (
+          buttonText
+        )}
       </button>
     </form>
   );

@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { Loader2 } from "lucide-react";
 import { NepaliDatePicker } from "nepali-datepicker-reactjs";
 import "nepali-datepicker-reactjs/dist/index.css";
 import { UserContext } from "../App";
@@ -18,12 +19,14 @@ interface IncomeFormProps {
   onSubmit: (data: IncomeFormData) => void;
   initialData?: IncomeFormData;
   buttonText?: string;
+  isLoading?: boolean;
 }
 
 const IncomeForm = ({
   onSubmit,
   initialData,
   buttonText = "Save Income",
+  isLoading = false,
 }: IncomeFormProps) => {
   const userContext = useContext(UserContext);
   const currencyCode = userContext?.user?.settings?.currency || "USD";
@@ -159,9 +162,17 @@ const IncomeForm = ({
 
       <button
         type="submit"
-        className="w-full py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-md shadow-indigo-200"
+        disabled={isLoading}
+        className="w-full py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-md shadow-indigo-200 disabled:opacity-70"
       >
-        {buttonText}
+        {isLoading ? (
+          <span className="flex items-center justify-center">
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Saving...
+          </span>
+        ) : (
+          buttonText
+        )}
       </button>
     </form>
   );

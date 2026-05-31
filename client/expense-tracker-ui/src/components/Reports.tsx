@@ -72,6 +72,7 @@ const Reports = () => {
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [insights, setInsights] = useState<string[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState("6months");
@@ -147,6 +148,19 @@ const Reports = () => {
 
     fetchReportData();
   }, [period]);
+
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    try {
+      // Placeholder for actual PDF generation logic
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log("PDF exported successfully");
+    } catch (err) {
+      console.error("Export failed:", err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const stats = summary
     ? [
@@ -225,9 +239,17 @@ const Reports = () => {
             <option value="6months">Last 6 Months</option>
             <option value="1year">Last 1 Year</option>
           </select>
-          <button className="flex items-center px-4 py-2 bg-indigo-600 rounded-lg shadow-md shadow-indigo-200 text-sm font-bold text-white hover:bg-indigo-700 transition-all">
-            <Download className="h-4 w-4 mr-2" />
-            Export PDF
+          <button
+            onClick={handleExportPDF}
+            disabled={isExporting}
+            className="flex items-center px-4 py-2 bg-indigo-600 rounded-lg shadow-md shadow-indigo-200 text-sm font-bold text-white hover:bg-indigo-700 transition-all disabled:opacity-70"
+          >
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            {isExporting ? "Exporting..." : "Export PDF"}
           </button>
         </div>
       </div>

@@ -28,6 +28,7 @@ const AllExpenses = () => {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchExpenses = async () => {
     setLoading(true);
@@ -47,6 +48,7 @@ const AllExpenses = () => {
   }, []);
 
   const handleAddOrEdit = async (data: ExpenseFormData) => {
+    setIsSubmitting(true);
     try {
       if (editingExpense) {
         const response = await expenseAPI.update(editingExpense._id, data);
@@ -68,6 +70,8 @@ const AllExpenses = () => {
         editingExpense ? "Failed to update expense" : "Failed to add expense"
       );
       console.error("Error saving expense:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -247,6 +251,7 @@ const AllExpenses = () => {
           onSubmit={handleAddOrEdit}
           initialData={editingExpense || undefined}
           buttonText={editingExpense ? "Update Expense" : "Add Expense"}
+          isLoading={isSubmitting}
         />
       </Modal>
     </div>

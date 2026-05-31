@@ -28,6 +28,7 @@ const AllIncome = () => {
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [incomeEntries, setIncomeEntries] = useState<Income[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchIncomes = async () => {
     setLoading(true);
@@ -51,6 +52,7 @@ const AllIncome = () => {
   }, [incomeEntries]);
 
   const handleAddOrEdit = async (data: IncomeFormData) => {
+    setIsSubmitting(true);
     try {
       if (editingIncome) {
         const response = await incomeAPI.update(editingIncome._id, data);
@@ -72,6 +74,8 @@ const AllIncome = () => {
         editingIncome ? "Failed to update income" : "Failed to add income"
       );
       console.error("Error saving income:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -261,6 +265,7 @@ const AllIncome = () => {
           onSubmit={handleAddOrEdit}
           initialData={editingIncome || undefined}
           buttonText={editingIncome ? "Update Income" : "Add Income"}
+          isLoading={isSubmitting}
         />
       </Modal>
     </div>

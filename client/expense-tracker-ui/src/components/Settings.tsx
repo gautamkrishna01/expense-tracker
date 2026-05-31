@@ -12,6 +12,7 @@ import {
   Moon,
   Sun,
   Download,
+  Loader2,
 } from "lucide-react";
 import { authAPI } from "../services/api";
 import { CURRENCIES, DATE_FORMATS } from "../constants";
@@ -42,6 +43,7 @@ const Settings = () => {
 
   const theme = watch("theme");
   const [isSaving, setIsSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -59,6 +61,7 @@ const Settings = () => {
   // Load settings on mount and apply theme
   useEffect(() => {
     const loadSettings = async () => {
+      setLoading(true);
       try {
         const response = await authAPI.getSettings();
         if (response.data?.settings) {
@@ -74,10 +77,20 @@ const Settings = () => {
         }
       } catch (error) {
         console.error("Failed to load settings:", error);
+      } finally {
+        setLoading(false);
       }
     };
     loadSettings();
   }, [reset]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 text-indigo-600 animate-spin" />
+      </div>
+    );
+  }
 
   const onSubmit = async (data: SettingsFormData) => {
     setIsSaving(true);
@@ -314,7 +327,14 @@ const Settings = () => {
             disabled={isSaving}
             className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-70"
           >
-            {isSaving ? "Saving..." : "Save All Changes"}
+            {isSaving ? (
+              <span className="flex items-center">
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </span>
+            ) : (
+              "Save All Changes"
+            )}
           </button>
         </div>
       </form>

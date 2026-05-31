@@ -30,6 +30,7 @@ const AllBudgets = () => {
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchBudgets = async () => {
     setLoading(true);
@@ -49,6 +50,7 @@ const AllBudgets = () => {
   }, []);
 
   const handleAddOrEdit = async (data: BudgetFormData) => {
+    setIsSubmitting(true);
     try {
       if (editingBudget) {
         const response = await budgetAPI.update(editingBudget._id, data);
@@ -68,6 +70,8 @@ const AllBudgets = () => {
         editingBudget ? "Failed to update budget" : "Failed to add budget"
       );
       console.error("Error saving budget:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -242,6 +246,7 @@ const AllBudgets = () => {
           onSubmit={handleAddOrEdit}
           initialData={editingBudget || undefined}
           buttonText={editingBudget ? "Update Budget" : "Create Budget"}
+          isLoading={isSubmitting}
         />
       </Modal>
     </div>
